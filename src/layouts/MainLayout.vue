@@ -13,15 +13,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import NavBar from 'src/components/common/NavBar.vue'
+import { defineComponent } from 'vue';
+import NavBar from 'src/components/common/NavBar.vue';
 
 const menuList = [
   {
     icon: 'inbox',
-    label: 'Registrar Pagamento',
+    label: 'Registrar Nova Despesa',
     separator: false,
-    path: 'registrar-pagamentos',
+    path: 'registrar-despesa',
   },
   {
     icon: 'send',
@@ -51,10 +51,17 @@ const menuList = [
     icon: 'help',
     iconColor: 'primary',
     label: 'Ajuda',
-    separator: false,
+    separator: true,
     path: 'ajuda',
   },
-]
+  {
+    icon: 'logout',
+    iconColor: 'primary',
+    label: 'Sair',
+    separator: false,
+    path: '',
+  },
+];
 
 export default defineComponent({
   name: 'MainLayout',
@@ -67,7 +74,7 @@ export default defineComponent({
     return {
       menuList,
       drawer: false,
-    }
+    };
   },
-})
+});
 </script>

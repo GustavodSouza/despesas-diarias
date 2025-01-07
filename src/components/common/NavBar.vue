@@ -1,8 +1,38 @@
 <template>
   <q-header elevated :class="$q.dark.isActive ? 'bg-secondary' : 'bg-black'">
-    <q-toolbar>
-      <q-btn flat @click="drawer = !drawer" round dense icon="menu" />
-      <q-toolbar-title>Despesas Diárias</q-toolbar-title>
+    <q-toolbar class="row justify-between">
+      <div class="row">
+        <q-btn flat @click="drawer = !drawer" round dense icon="menu" />
+        <q-toolbar-title>Despesas Diárias</q-toolbar-title>
+      </div>
+      <div class="row">
+        <q-avatar color="white cursor-pointer" text-color="black">
+          <span> {{ getIniciaisUsuario }} </span>
+
+          <q-menu>
+            <div class="row no-wrap q-pa-md">
+              <div class="column">
+                <div class="text-h6 q-mb-md">Settings</div>
+                <q-toggle v-model="mobileData" label="Modo noturno" />
+              </div>
+
+              <q-separator vertical inset class="q-mx-lg" />
+
+              <div class="column items-center">
+                <q-avatar size="72px">
+                  <img src="https://cdn.quasar.dev/img/avatar4.jpg" />
+                </q-avatar>
+
+                <div class="text-subtitle1 q-mt-md q-mb-xs">
+                  {{ getNomeCompletoUsuario }}
+                </div>
+
+                <q-btn color="primary" label="Sair" push size="sm" v-close-popup />
+              </div>
+            </div>
+          </q-menu>
+        </q-avatar>
+      </div>
     </q-toolbar>
   </q-header>
 
@@ -37,13 +67,14 @@
   </q-drawer>
 </template>
 <script lang="ts">
-import { defineComponent, shallowRef } from 'vue'
+import { defineComponent, shallowRef } from 'vue';
+import { usuarioStore } from 'src/stores/UsuarioStore';
 
 interface IItensMenu {
-  label: string
-  icon: string
-  separator: boolean
-  path: string
+  label: string;
+  icon: string;
+  separator: boolean;
+  path: string;
 }
 
 export default defineComponent({
@@ -57,15 +88,40 @@ export default defineComponent({
   },
 
   data() {
+    const usuarioStoreInstance = usuarioStore();
+
     return {
       drawer: shallowRef<boolean>(false),
-    }
+      usuarioStoreInstance,
+      mobileData: shallowRef<boolean>(false),
+    };
+  },
+
+  computed: {
+    getIniciaisUsuario(): string {
+      const palavrasSobrenome = this.usuarioStoreInstance.getUsuario.sobrenome.split(' ');
+      const sobrenomeFiltrado = palavrasSobrenome.filter(
+        (palavra) => !['de', 'da', 'do', 'das', 'dos'].includes(palavra.toLowerCase()),
+      );
+
+      // Obter as iniciais
+      const inicialNome = this.usuarioStoreInstance.getUsuario.nome[0];
+      const inicialSobrenome = sobrenomeFiltrado.length > 0 ? sobrenomeFiltrado[0][0] : '';
+
+      const iniciais = (inicialNome + inicialSobrenome).toUpperCase();
+
+      return iniciais;
+    },
+
+    getNomeCompletoUsuario(): string {
+      return `${this.usuarioStoreInstance.getUsuario.nome} ${this.usuarioStoreInstance.getUsuario.sobrenome}`;
+    },
   },
 
   methods: {
     navegar(rota: string): void {
-      console.log('Rota', rota)
+      console.log('Rota', rota);
     },
   },
-})
+});
 </script>
