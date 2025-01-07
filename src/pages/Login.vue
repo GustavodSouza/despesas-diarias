@@ -35,7 +35,7 @@
             />
           </q-item>
           <q-item class="row q-pt-md q-gutter-x-md">
-            <q-btn color="primary" no-caps label="Entrar" />
+            <q-btn color="primary" no-caps label="Entrar" @click="realizarLogin" />
             <q-btn
               color="warning"
               no-caps
@@ -48,7 +48,7 @@
       </q-tab-panel>
 
       <q-tab-panel name="criarConta">
-        <q-form ref="formulario-logar">
+        <q-form ref="formularioCadastro">
           <q-item class="column full-width q-gutter-y-md">
             <q-input
               class="col-12"
@@ -80,7 +80,7 @@
             />
           </q-item>
           <q-item class="row q-pt-md q-gutter-x-md">
-            <q-btn color="primary" no-caps label="Cadastrar" />
+            <q-btn color="primary" no-caps label="Cadastrar" @click="registrarUsuario" />
             <q-btn
               color="warning"
               no-caps
@@ -98,10 +98,23 @@
 <script lang="ts">
 import { defineComponent, ref, shallowRef } from 'vue';
 
+import {
+  atribuirInformacoesPerfilUsuario,
+  criarContaUsuario,
+  realizarLogin,
+  buscarUsuarioPorUid,
+} from 'src/services/UsuarioService';
+
+import { usuarioStore } from 'src/stores/UsuarioStore';
+
+import { showLoader, hideLoader } from 'src/plugins/loaderPlugin';
+
 export default defineComponent({
   name: 'LoginComponent',
 
   data() {
+    const usuarioStoreInstance = usuarioStore();
+
     return {
       tab: ref('logar'),
       form: {
@@ -110,10 +123,69 @@ export default defineComponent({
         email: shallowRef<string>(''),
         senha: shallowRef<string>(''),
       },
+      usuarioStoreInstance,
     };
   },
 
   methods: {
+    async registrarUsuario(): Promise<void> {
+      this.$refs.formularioCadastro.validate().then(async (isFormularioValido: boolean) => {
+        const informacoesBasicas = {
+          email: this.form.email,
+          senha: this.form.senha,
+        };
+
+        if (isFormularioValido) {
+          // 1º Registra o usuário no authentication
+          const response = await criarContaUsuario({
+            ...informacoesBasicas,
+          });
+
+          if (response) {
+            // 2º Registra o usuário no firestore
+            const payload = {
+              nome: this.form.nome,
+              sobrenome: this.form.sobrenome,
+              uid: response.user.uid,
+              ...informacoesBasicas,
+            };
+
+            await atribuirInformacoesPerfilUsuario(payload).then(() => {
+              this.limparCampos();
+              this.tab = 'logar';
+            });
+          }
+        } else {
+          console.log('Formulario invalido');
+        }
+      });
+    },
+
+    async realizarLogin(): Promise<void> {
+      showLoader();
+
+      await realizarLogin({
+        email: this.form.email,
+        senha: this.form.senha,
+      }).then(async (response) => {
+        const usuario = await buscarUsuarioPorUid(response.user.uid);
+
+        usuario.forEach((usuarioItem) => {
+          const usuarioData = usuarioItem.data();
+
+          this.usuarioStoreInstance.setUsuario({
+            uid: usuarioData.uid,
+            nome: usuarioData.nome,
+            sobrenome: usuarioData.sobrenome,
+            email: usuarioData.email,
+          });
+        });
+
+        hideLoader();
+        this.$router.push('/home');
+      });
+    },
+
     validarCampo(valorDigitado: string): boolean {
       return !!valorDigitado;
     },
