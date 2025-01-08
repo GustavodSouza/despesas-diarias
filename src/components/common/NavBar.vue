@@ -5,7 +5,7 @@
         <q-btn flat @click="drawer = !drawer" round dense icon="menu" />
         <q-toolbar-title>Despesas Diárias</q-toolbar-title>
       </div>
-      <div class="row">
+      <div class="row" v-if="usuarioStoreInstance.user.uid !== null">
         <q-avatar color="white cursor-pointer" text-color="black">
           <span> {{ getIniciaisUsuario }} </span>
 
@@ -27,7 +27,7 @@
                   {{ getNomeCompletoUsuario }}
                 </div>
 
-                <q-btn color="primary" label="Sair" push size="sm" v-close-popup />
+                <q-btn color="primary" label="Sair" push size="sm" v-close-popup @click="sair" />
               </div>
             </div>
           </q-menu>
@@ -69,6 +69,8 @@
 <script lang="ts">
 import { defineComponent, shallowRef } from 'vue';
 import { usuarioStore } from 'src/stores/UsuarioStore';
+import { realizarLogout } from 'src/services/UsuarioService';
+import { hideLoader, showLoader } from 'src/plugins/loaderPlugin';
 
 interface IItensMenu {
   label: string;
@@ -120,7 +122,17 @@ export default defineComponent({
 
   methods: {
     navegar(rota: string): void {
-      console.log('Rota', rota);
+      this.$router.push(rota);
+    },
+
+    async sair(): Promise<void> {
+      showLoader();
+
+      await realizarLogout()
+        .then(() => {
+          this.usuarioStoreInstance.limparUsuario();
+        })
+        .finally(hideLoader);
     },
   },
 });

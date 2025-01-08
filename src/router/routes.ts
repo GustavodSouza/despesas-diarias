@@ -10,13 +10,21 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/Login.vue'),
       },
       {
+        path: 'login',
+        name: 'login',
+        component: () => import('pages/Login.vue'),
+      },
+      {
         path: 'home',
         component: () => import('pages/Home.vue'),
       },
-      // {
-      //   path: 'login',
-      //   component: () => import('pages/Login.vue'),
-      // },
+      {
+        path: 'registrar-despesa',
+        component: () => import('pages/Despesas.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+      },
     ],
   },
   {

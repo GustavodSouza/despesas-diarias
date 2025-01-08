@@ -1,5 +1,5 @@
 import type IUsuario from 'src/interfaces/UsuarioInterface';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { db, auth } from 'src/boot/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
@@ -9,6 +9,10 @@ export const criarContaUsuario = async (usuarioModel: IUsuario) => {
 
 export const realizarLogin = async (usuarioModel: IUsuario) => {
   return await signInWithEmailAndPassword(auth, usuarioModel.email, usuarioModel.senha);
+};
+
+export const realizarLogout = async () => {
+  return await signOut(auth);
 };
 
 export const buscarUsuarioPorUid = async (uidUsuario: string) => {

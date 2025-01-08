@@ -1,11 +1,7 @@
 <template>
-  <q-layout view="hHh Lpr lff" style="height: 100vh; width: 100vw">
-    <q-page-container>
-      <span class="text-h6"
-        >Bem-vindo(a) <strong>{{ getNomeCompletoUsuario }}</strong></span
-      >
-    </q-page-container>
-  </q-layout>
+  <div>
+    <span> Home </span>
+  </div>
 </template>
 
 <script lang="ts">

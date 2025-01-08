@@ -23,6 +23,15 @@ export const usuarioStore = defineStore('usuarioStore', {
       this.user.sobrenome = usuario.sobrenome;
       this.user.email = usuario.email;
     },
+
+    limparUsuario() {
+      this.user = {
+        uid: null,
+        nome: '',
+        sobrenome: '',
+        email: '',
+      };
+    },
   },
 
   persist: {
