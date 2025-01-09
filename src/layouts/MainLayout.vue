@@ -5,6 +5,9 @@
 
       <q-page-container>
         <q-page padding>
+          <q-item padding>
+            <span>Página Inicial</span>
+          </q-item>
           <router-view />
         </q-page>
       </q-page-container>
@@ -18,19 +21,25 @@ import NavBar from 'src/components/common/NavBar.vue';
 
 const menuList = [
   {
-    icon: 'inbox',
+    icon: 'home',
+    label: 'Página Inícial',
+    separator: true,
+    path: 'home',
+  },
+  {
+    icon: 'money',
     label: 'Registrar Nova Despesa',
     separator: false,
     path: 'registrar-despesa',
   },
   {
-    icon: 'send',
+    icon: 'newspaper',
     label: 'Relatórios',
     separator: false,
     path: 'relatorios',
   },
   {
-    icon: 'delete',
+    icon: 'people',
     label: 'Perfil',
     separator: true,
     path: 'perfil',

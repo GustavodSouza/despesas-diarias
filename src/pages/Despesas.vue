@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <span>Registrar Despesa</span>
-  </div>
+  <q-item>
+    <span>Página de Despesas</span>
+  </q-item>
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue';

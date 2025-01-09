@@ -108,7 +108,8 @@ export default defineComponent({
 
       // Obter as iniciais
       const inicialNome = this.usuarioStoreInstance.getUsuario.nome[0];
-      const inicialSobrenome = sobrenomeFiltrado.length > 0 ? sobrenomeFiltrado[0][0] : '';
+      const inicialSobrenome =
+        sobrenomeFiltrado.length > 0 ? sobrenomeFiltrado[sobrenomeFiltrado.length - 1][0] : '';
 
       const iniciais = (inicialNome + inicialSobrenome).toUpperCase();
 

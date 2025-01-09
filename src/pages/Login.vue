@@ -34,7 +34,15 @@
               minlength="12"
               :type="inputType"
               :rules="[validarCampo]"
-            />
+            >
+              <template v-slot:append>
+                <q-icon
+                  class="cursor-pointer"
+                  :name="inputType === 'password' ? 'visibility_off' : 'visibility'"
+                  @click="mudarVisibilidadeSenha"
+                />
+              </template>
+            </q-input>
           </q-item>
           <q-item class="row q-pt-md q-gutter-x-md">
             <q-btn color="primary" no-caps label="Entrar" @click="realizarLogin" />
@@ -45,6 +53,13 @@
               @click="limparCampos"
               hide-bottom-space
             />
+            <!-- <img
+              class="cursor-pointer"
+              style="width: 35px; height: 35px; margin-left: 100px"
+              src="../assets/google.png"
+              alt="Logo Google"
+              @click="loginGoogle"
+            /> -->
           </q-item>
         </q-form>
       </q-tab-panel>
@@ -100,6 +115,13 @@
               @click="limparCampos"
               hide-bottom-space
             />
+            <!-- <img
+              class="cursor-pointer"
+              style="width: 35px; height: 35px; margin-left: 100px"
+              src="../assets/google.png"
+              alt="Logo Google"
+              @click="loginGoogle"
+            /> -->
           </q-item>
         </q-form>
       </q-tab-panel>
@@ -115,6 +137,7 @@ import {
   criarContaUsuario,
   realizarLogin,
   buscarUsuarioPorUid,
+  realizarLoginGoogle,
 } from 'src/services/UsuarioService';
 
 import { usuarioStore } from 'src/stores/UsuarioStore';
@@ -210,13 +233,23 @@ export default defineComponent({
       });
     },
 
+    async loginGoogle(): Promise<void> {
+      await realizarLoginGoogle();
+    },
+
     validarCampo(valorDigitado: string) {
-      return !!valorDigitado;
+      if (!valorDigitado) {
+        return 'Preencha o campo.';
+      }
+      return true;
     },
 
     validarCampoEmail(valorDigitado: string) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(valorDigitado) || 'Por favor, insira um e-mail válido.';
+      return (
+        emailRegex.test(valorDigitado) ||
+        'Por favor, insira um e-mail válido. (Ex: seunome@gmail.com)'
+      );
     },
 
     validarCampoSenha(valorDigitado: string) {

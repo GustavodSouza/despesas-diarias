@@ -1,7 +1,9 @@
 <template>
-  <div>
-    <span> Home </span>
-  </div>
+  <q-item>
+    <span class="text-h5"
+      >Bem-vindo(a) <strong>{{ getNomeCompletoUsuario }}</strong></span
+    >
+  </q-item>
 </template>
 
 <script lang="ts">
