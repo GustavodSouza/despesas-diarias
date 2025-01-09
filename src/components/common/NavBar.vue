@@ -51,7 +51,7 @@
             clickable
             :active="menuItem.label === 'Outbox'"
             v-ripple
-            @click="navegar(menuItem.path, menuItem.label)"
+            @click="navegar(menuItem.path)"
           >
             <q-item-section avatar>
               <q-icon :name="menuItem.icon" />
@@ -126,8 +126,7 @@ export default defineComponent({
   },
 
   methods: {
-    navegar(rota: string, label: string): void {
-      this.$emit('titulo', label);
+    navegar(rota: string): void {
       this.$router.push(rota);
     },
 
