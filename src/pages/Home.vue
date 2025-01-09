@@ -1,8 +1,13 @@
 <template>
   <q-item>
-    <span class="text-h5"
-      >Bem-vindo(a) <strong>{{ getNomeCompletoUsuario }}</strong></span
-    >
+    <q-card class="my-card full-width">
+      <q-card-section v-if="usuarioStoreInstance.user.uid !== ''">
+        <span class="text-h5"
+          >Bem-vindo(a) <strong>{{ getNomeCompletoUsuario }}</strong></span
+        >
+      </q-card-section>
+      <q-card-section> </q-card-section>
+    </q-card>
   </q-item>
 </template>
 

@@ -5,7 +5,7 @@
         <q-btn flat @click="drawer = !drawer" round dense icon="menu" />
         <q-toolbar-title>Despesas Diárias</q-toolbar-title>
       </div>
-      <div class="row" v-if="usuarioStoreInstance.user.uid !== null">
+      <div class="row" v-if="usuarioStoreInstance.user.uid !== ''">
         <q-avatar color="white cursor-pointer" text-color="black">
           <span> {{ getIniciaisUsuario }} </span>
 
@@ -51,7 +51,7 @@
             clickable
             :active="menuItem.label === 'Outbox'"
             v-ripple
-            @click="navegar(menuItem.path)"
+            @click="navegar(menuItem.path, menuItem.label)"
           >
             <q-item-section avatar>
               <q-icon :name="menuItem.icon" />
@@ -101,17 +101,21 @@ export default defineComponent({
 
   computed: {
     getIniciaisUsuario(): string {
-      const palavrasSobrenome = this.usuarioStoreInstance.getUsuario.sobrenome.split(' ');
-      const sobrenomeFiltrado = palavrasSobrenome.filter(
-        (palavra) => !['de', 'da', 'do', 'das', 'dos'].includes(palavra.toLowerCase()),
-      );
+      let iniciais = '';
 
-      // Obter as iniciais
-      const inicialNome = this.usuarioStoreInstance.getUsuario.nome[0];
-      const inicialSobrenome =
-        sobrenomeFiltrado.length > 0 ? sobrenomeFiltrado[sobrenomeFiltrado.length - 1][0] : '';
+      if (this.usuarioStoreInstance.getUsuario.nome !== '') {
+        const palavrasSobrenome = this.usuarioStoreInstance.getUsuario.sobrenome.split(' ');
+        const sobrenomeFiltrado = palavrasSobrenome.filter(
+          (palavra) => !['de', 'da', 'do', 'das', 'dos'].includes(palavra.toLowerCase()),
+        );
 
-      const iniciais = (inicialNome + inicialSobrenome).toUpperCase();
+        // Obter as iniciais
+        const inicialNome = this.usuarioStoreInstance.getUsuario.nome[0];
+        const inicialSobrenome =
+          sobrenomeFiltrado.length > 0 ? sobrenomeFiltrado[sobrenomeFiltrado.length - 1][0] : '';
+
+        iniciais = (inicialNome + inicialSobrenome).toUpperCase();
+      }
 
       return iniciais;
     },
@@ -122,7 +126,8 @@ export default defineComponent({
   },
 
   methods: {
-    navegar(rota: string): void {
+    navegar(rota: string, label: string): void {
+      this.$emit('titulo', label);
       this.$router.push(rota);
     },
 

@@ -1,13 +1,10 @@
 <template>
   <div class="full-height">
     <q-layout view="hHh Lpr lff" style="height: 100vh; width: 100vw">
-      <nav-bar :itens-menu="menuList" />
+      <nav-bar :itens-menu="menuList" @titulo="tituloPagina = $event" />
 
       <q-page-container>
         <q-page padding>
-          <q-item padding>
-            <span>Página Inicial</span>
-          </q-item>
           <router-view />
         </q-page>
       </q-page-container>
@@ -16,7 +13,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, shallowRef } from 'vue';
 import NavBar from 'src/components/common/NavBar.vue';
 
 const menuList = [
@@ -83,6 +80,7 @@ export default defineComponent({
     return {
       menuList,
       drawer: false,
+      tituloPagina: shallowRef<string>('Página Inícial'),
     };
   },
 });
