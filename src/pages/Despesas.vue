@@ -13,7 +13,7 @@
                 <span class="text-h6">Mês Filtrado</span>
                 <q-icon class="q-pl-md" size="xs" :name="icons.fasCalendarCheck" />
               </div>
-              <span class="text-h6">{{ mesFiltrado }}</span>
+              <span class="text-h6">{{ mesVigente }}</span>
             </q-card>
           </q-item>
 
@@ -43,19 +43,21 @@
       <q-card-section>
         <q-item class="row">
           <q-card class="full-width">
-            <div class="q-pa-md">
+            <div class="row q-gutter-sm items-center q-pa-md">
               <span class="text-bold">Filtros</span>
             </div>
             <form-despesa
+              ref="formularioComponente"
               @emit-descricao="form.descricao = $event"
               @emit-data="form.data = $event"
               @emit-preco="form.preco = $event"
               :is-required="false"
+              :is-data-mes-ano="true"
             >
               <template #botoes>
-                <q-item class="row q-gutter-md">
-                  <q-btn no-caps color="primary" label="Filtrar" @click="filtrar" />
-                  <q-btn no-caps color="warning" label="Limpar" />
+                <q-item class="row q-gutter-md col-12">
+                  <q-btn no-caps color="primary" label="Filtrar" @click="filtrarDespesa" />
+                  <q-btn no-caps color="warning" label="Limpar" @click="limparCampos" />
                 </q-item>
               </template>
             </form-despesa>
@@ -78,7 +80,14 @@
               <q-tr :props="props">
                 <q-td class="row items-center q-gutter-x-md">
                   <span>{{ props.row.descricao }}</span>
-                  <q-icon color="info" :name="icons.fasCircleInfo" />
+                  <q-icon
+                    v-if="props.row.observacao"
+                    class="cursor-pointer"
+                    size="xs"
+                    color="info"
+                    :name="icons.fasCircleInfo"
+                    @click="openModalGenerico(props.row.observacao)"
+                  />
                 </q-td>
                 <q-td>
                   {{ formatarData(props.row.data) }}
@@ -107,10 +116,22 @@
       </q-card-section>
     </q-card>
   </q-item>
-  <despesa-dialog ref="despesaDialog" />
+  <modal-nova-despesa ref="despesaDialog" @carregar-tabela="obterTodasDespesas" />
+  <modal-generico ref="modalGenerico">
+    <template #titulo>
+      <span class="text-h6">Detalhes da Observação</span>
+    </template>
+    <template #conteudo>
+      <q-card class="full-width box-container no-box-shadow q-mb-md q-ml-none">
+        <span class="text-bold">
+          {{ observacao }}
+        </span>
+      </q-card>
+    </template>
+  </modal-generico>
 </template>
 <script lang="ts">
-import { defineComponent, shallowRef } from 'vue';
+import { defineComponent, shallowRef, ref } from 'vue';
 import {
   fasCalendarCheck,
   fasSackDollar,
@@ -124,10 +145,23 @@ import { notify } from 'src/utils/notifyUtils';
 
 import type { ITabela } from 'src/interfaces/TabelaInterface';
 import type { IDespesa } from 'src/interfaces/DespesaInterface';
-import { date } from 'quasar';
+import { format, parseISO } from 'date-fns';
 
 import FormDespesa from 'src/components/forms/FormDespesa.vue';
-import DespesaDialog from 'src/components/dialogs/DespesaDialog.vue';
+
+import ModalNovaDespesa from 'src/components/dialogs/ModalNovaDespesa.vue';
+import ModalGenerico from 'src/components/dialogs/ModalGenerico.vue';
+
+import { usuarioStore } from 'src/stores/UsuarioStore';
+
+import { obterTodasDespesasPorIdUsuario } from 'src/services/DespesaService';
+import { hideLoader, showLoader } from 'src/plugins/loaderPlugin';
+
+import { calcularTotalDespesas } from 'src/helpers/monetario-helpers';
+
+import { MesesConstant } from 'src/constants/MesesConst';
+
+import { filtrarDespesa } from 'src/services/DespesaService';
 
 const colunas = [
   {
@@ -176,33 +210,18 @@ const colunas = [
   },
 ] as Array<ITabela>;
 
-const rows = [
-  {
-    descricao: 'Conta de Luz',
-    data: '2025-01-08',
-    preco: 98.44,
-  },
-  {
-    descricao: 'Conta de Água',
-    data: '2025-01-05',
-    preco: 70.99,
-  },
-  {
-    descricao: 'Plano de Saúde',
-    data: '2025-01-01',
-    preco: 180.44,
-  },
-] as Array<IDespesa>;
-
 export default defineComponent({
   name: 'DespesaComponent',
 
   components: {
-    DespesaDialog,
     FormDespesa,
+    ModalNovaDespesa,
+    ModalGenerico,
   },
 
   data() {
+    const usuarioStoreInstance = usuarioStore();
+
     return {
       form: {
         descricao: shallowRef<string>(''),
@@ -218,11 +237,17 @@ export default defineComponent({
         fasCircleXmark,
       },
 
-      valorTotal: shallowRef<number>(1350.33),
-      mesFiltrado: shallowRef<string>('Janeiro'),
+      valorTotal: shallowRef<number>(0),
       colunas,
-      rows,
+      rows: ref<Array<IDespesa>>([]),
+      usuarioStoreInstance,
+      mesVigente: ref(MesesConstant()[new Date().getMonth()]),
+      observacao: shallowRef<string>(''),
     };
+  },
+
+  async mounted() {
+    this.obterTodasDespesas();
   },
 
   methods: {
@@ -239,7 +264,8 @@ export default defineComponent({
     },
 
     formatarData(data: string): string {
-      return date.formatDate(data, 'DD/MM/YYYY');
+      const parsedDate = parseISO(data);
+      return format(parsedDate, 'dd/MM/yyyy');
     },
 
     formatarPreco(preco: number) {
@@ -249,13 +275,83 @@ export default defineComponent({
       }).format(preco);
     },
 
-    filtrar(): void {
-      console.log('Realizando busca', this.form);
-    },
-
     openModalNovaDespesa(): void {
       this.$refs.despesaDialog.openModal();
+    },
+
+    openModalGenerico(observacao: string): void {
+      this.observacao = observacao;
+      this.$refs.modalGenerico.openModal();
+    },
+
+    async obterTodasDespesas(): Promise<void> {
+      showLoader();
+
+      await obterTodasDespesasPorIdUsuario(this.usuarioStoreInstance.user.uid)
+        .then((querySnapshot) => {
+          if (!querySnapshot.empty) {
+            this.rows = querySnapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(), // Adiciona os dados da despesa
+            }));
+          }
+        })
+        .catch(() => {
+          notify(
+            'negative',
+            'Ocorreu um erro ao carregar as despesas. Tente novamente mais tarde!',
+          );
+        })
+        .finally(() => {
+          this.obterTotalDespesa();
+          hideLoader();
+        });
+    },
+
+    obterTotalDespesa(): void {
+      const listaTotais = this.rows.map((despesa: IDespesa) => despesa.preco);
+      this.valorTotal = calcularTotalDespesas(listaTotais);
+    },
+
+    async filtrarDespesa(): Promise<void> {
+      showLoader();
+
+      await filtrarDespesa(this.form, this.usuarioStoreInstance.user.uid)
+        .then((querySnapshot) => {
+          if (!querySnapshot.empty) {
+            this.rows = querySnapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(), // Adiciona os dados da despesa
+            }));
+          } else {
+            this.rows = [];
+            notify('warning', 'Nenhum registro foi encontrado com o(s) filtro(s) informados!');
+          }
+        })
+        .catch(() => {
+          notify('negative', 'Ocorreu um erro ao filtrar a despesa. Tente novamente mais tarde!');
+        })
+        .finally(() => {
+          this.obterTotalDespesa();
+          hideLoader();
+        });
+    },
+
+    limparCampos(): void {
+      this.form.descricao = '';
+      this.form.data = '';
+      this.form.preco = '';
+      this.$refs.formularioComponente.limparCampos();
     },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+.box-container {
+  border: 1px solid gray;
+  min-height: 200px;
+  border-radius: 13px;
+  padding: 20px;
+}
+</style>
