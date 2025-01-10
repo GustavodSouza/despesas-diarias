@@ -1,6 +1,6 @@
 <template>
   <div class="full-height">
-    <q-layout view="hHh Lpr lff" style="height: 100vh; width: 100vw">
+    <q-layout view="hHh Lpr lff" style="height: 100vh">
       <nav-bar :itens-menu="menuList" />
 
       <q-page-container>
@@ -18,19 +18,25 @@ import NavBar from 'src/components/common/NavBar.vue';
 
 const menuList = [
   {
-    icon: 'inbox',
+    icon: 'home',
+    label: 'Página Inícial',
+    separator: true,
+    path: 'home',
+  },
+  {
+    icon: 'money',
     label: 'Registrar Nova Despesa',
     separator: false,
     path: 'registrar-despesa',
   },
   {
-    icon: 'send',
+    icon: 'newspaper',
     label: 'Relatórios',
     separator: false,
     path: 'relatorios',
   },
   {
-    icon: 'delete',
+    icon: 'people',
     label: 'Perfil',
     separator: true,
     path: 'perfil',

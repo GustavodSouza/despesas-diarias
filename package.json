@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Projeto criado para registros de despesas e relatórios mensais.",
   "productName": "Despesas Diarias App",
-  "author": "Gustavo de Lima <gustavo.delima@castgroup.com.br>",
+  "author": "Gustavo de Souza de Lima <gustavosouza501@gmail.com>",
   "type": "module",
   "private": true,
   "scripts": {
@@ -16,10 +16,13 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
+    "date-fns": "^4.1.0",
     "firebase": "^11.1.0",
+    "mitt": "^3.0.1",
     "pinia": "^2.3.0",
     "pinia-plugin-persistedstate": "^4.2.0",
     "quasar": "^2.16.0",
+    "v-money": "^0.8.1",
     "vue": "^3.4.18",
     "vue-router": "^4.0.12"
   },

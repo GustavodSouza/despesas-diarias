@@ -1,1 +1,28 @@
-// app global css in SCSS form
+/*  Utilizado para definir um tamanho máximo para tabela e criar um scroll vertical,
+    Mantendo o header da tabela fixa. Ex: <q-table class="fixar-header-tabela" />
+*/
+.fixar-header-tabela {
+  max-height: 700px;
+
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  tbody {
+    scroll-margin-top: 48px;
+  }
+}
+
+/*  Utilizado para fixar a última coluna da tabela,
+      Mantendo a coluna sobreposta as demais. Ex: <q-table class="fixar-ultima-coluna-tabela" />
+  */
+.fixar-ultima-coluna-tabela {
+  th:last-child,
+  td:last-child {
+    position: sticky;
+    right: 0;
+    background-color: #fff;
+  }
+}

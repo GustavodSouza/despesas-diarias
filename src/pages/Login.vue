@@ -17,22 +17,32 @@
 
     <q-tab-panels v-model="tab" animated>
       <q-tab-panel name="logar">
-        <q-form ref="formulario-logar">
+        <q-form ref="formularioLogin">
           <q-item class="column full-width q-gutter-y-md">
             <q-input
               class="col-12"
               v-model="form.email"
               label="E-mail"
-              :rules="[validarCampo]"
+              :rules="[validarCampoEmail]"
               hide-bottom-space
             />
             <q-input
-              class="col-12"
               v-model="form.senha"
+              bottom-slots
               label="Senha"
+              counter
+              minlength="12"
+              :type="inputType"
               :rules="[validarCampo]"
-              hide-bottom-space
-            />
+            >
+              <template v-slot:append>
+                <q-icon
+                  class="cursor-pointer"
+                  :name="inputType === 'password' ? 'visibility_off' : 'visibility'"
+                  @click="mudarVisibilidadeSenha"
+                />
+              </template>
+            </q-input>
           </q-item>
           <q-item class="row q-pt-md q-gutter-x-md">
             <q-btn color="primary" no-caps label="Entrar" @click="realizarLogin" />
@@ -43,6 +53,13 @@
               @click="limparCampos"
               hide-bottom-space
             />
+            <!-- <img
+              class="cursor-pointer"
+              style="width: 35px; height: 35px; margin-left: 100px"
+              src="../assets/google.png"
+              alt="Logo Google"
+              @click="loginGoogle"
+            /> -->
           </q-item>
         </q-form>
       </q-tab-panel>
@@ -68,16 +85,26 @@
               class="col-12"
               v-model="form.email"
               label="E-mail"
-              :rules="[validarCampo]"
+              :rules="[validarCampoEmail]"
               hide-bottom-space
             />
             <q-input
-              class="col-12"
               v-model="form.senha"
+              bottom-slots
               label="Senha"
-              :rules="[validarCampo]"
-              hide-bottom-space
-            />
+              counter
+              minlength="12"
+              :type="inputType"
+              :rules="[validarCampoSenha]"
+            >
+              <template v-slot:append>
+                <q-icon
+                  class="cursor-pointer"
+                  :name="inputType === 'password' ? 'visibility_off' : 'visibility'"
+                  @click="mudarVisibilidadeSenha"
+                />
+              </template>
+            </q-input>
           </q-item>
           <q-item class="row q-pt-md q-gutter-x-md">
             <q-btn color="primary" no-caps label="Cadastrar" @click="registrarUsuario" />
@@ -88,6 +115,13 @@
               @click="limparCampos"
               hide-bottom-space
             />
+            <!-- <img
+              class="cursor-pointer"
+              style="width: 35px; height: 35px; margin-left: 100px"
+              src="../assets/google.png"
+              alt="Logo Google"
+              @click="loginGoogle"
+            /> -->
           </q-item>
         </q-form>
       </q-tab-panel>
@@ -103,11 +137,14 @@ import {
   criarContaUsuario,
   realizarLogin,
   buscarUsuarioPorUid,
+  realizarLoginGoogle,
 } from 'src/services/UsuarioService';
 
 import { usuarioStore } from 'src/stores/UsuarioStore';
 
 import { showLoader, hideLoader } from 'src/plugins/loaderPlugin';
+
+import { notify } from 'src/utils/notifyUtils';
 
 export default defineComponent({
   name: 'LoginComponent',
@@ -124,6 +161,7 @@ export default defineComponent({
         senha: shallowRef<string>(''),
       },
       usuarioStoreInstance,
+      inputType: 'password' as 'password' | 'text',
     };
   },
 
@@ -162,32 +200,64 @@ export default defineComponent({
     },
 
     async realizarLogin(): Promise<void> {
-      showLoader();
+      this.$refs.formularioLogin.validate().then(async (isFormularioValido: boolean) => {
+        if (isFormularioValido) {
+          showLoader();
+          await realizarLogin({
+            email: this.form.email,
+            senha: this.form.senha,
+          })
+            .then(async (response) => {
+              const usuario = await buscarUsuarioPorUid(response.user.uid);
 
-      await realizarLogin({
-        email: this.form.email,
-        senha: this.form.senha,
-      }).then(async (response) => {
-        const usuario = await buscarUsuarioPorUid(response.user.uid);
+              usuario.forEach((usuarioItem) => {
+                const usuarioData = usuarioItem.data();
 
-        usuario.forEach((usuarioItem) => {
-          const usuarioData = usuarioItem.data();
+                this.usuarioStoreInstance.setUsuario({
+                  uid: usuarioData.uid,
+                  nome: usuarioData.nome,
+                  sobrenome: usuarioData.sobrenome,
+                  email: usuarioData.email,
+                });
+              });
 
-          this.usuarioStoreInstance.setUsuario({
-            uid: usuarioData.uid,
-            nome: usuarioData.nome,
-            sobrenome: usuarioData.sobrenome,
-            email: usuarioData.email,
-          });
-        });
-
-        hideLoader();
-        this.$router.push('/home');
+              this.$router.push('/home');
+            })
+            .catch((error) => {
+              if (error.code === 'auth/invalid-credential') {
+                notify('negative', 'Credenciais inválidas!');
+              }
+            })
+            .finally(hideLoader);
+        }
       });
     },
 
-    validarCampo(valorDigitado: string): boolean {
-      return !!valorDigitado;
+    async loginGoogle(): Promise<void> {
+      await realizarLoginGoogle();
+    },
+
+    validarCampo(valorDigitado: string) {
+      if (!valorDigitado) {
+        return 'Preencha o campo.';
+      }
+      return true;
+    },
+
+    validarCampoEmail(valorDigitado: string) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return (
+        emailRegex.test(valorDigitado) ||
+        'Por favor, insira um e-mail válido. (Ex: seunome@gmail.com)'
+      );
+    },
+
+    validarCampoSenha(valorDigitado: string) {
+      if (valorDigitado.length < 8) {
+        return 'A senha deve conter no mínimo 8 caracteres.';
+      }
+
+      return true;
     },
 
     limparCampos(): void {
@@ -195,6 +265,10 @@ export default defineComponent({
       this.form.sobrenome = '';
       this.form.senha = '';
       this.form.email = '';
+    },
+
+    mudarVisibilidadeSenha(): void {
+      this.inputType = this.inputType === 'password' ? 'text' : 'password';
     },
   },
 });
