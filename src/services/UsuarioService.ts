@@ -39,7 +39,6 @@ export const atribuirInformacoesPerfilUsuario = async (usuarioModel: IUsuario) =
 };
 
 export const realizarLoginGoogle = async () => {
-  debugger;
   const provider = new GoogleAuthProvider();
   const usuarioStoreInstance = usuarioStore() as ReturnType<typeof usuarioStore>;
 

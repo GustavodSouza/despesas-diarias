@@ -8,7 +8,7 @@ export const criarDespesa = async (despesaModel: IDespesa, uidUsuario: string) =
   const despesasRef = collection(db, 'users', uidUsuario, 'despesas');
 
   const date = new Date(despesaModel.data);
-  debugger;
+
   return await addDoc(despesasRef, {
     descricao: despesaModel.descricao,
     preco: formatarMonetarioBRparaArmazenamento(despesaModel.preco),
