@@ -1,6 +1,6 @@
 <template>
-  <q-item>
-    <q-card class="my-card full-width">
+  <q-item v-if="!$q.platform.is.mobile">
+    <q-card class="full-width">
       <q-card-section>
         <span class="text-bold text-h6">Registrar Nova Despesa</span>
       </q-card-section>
@@ -70,53 +70,77 @@
           <div class="row q-pb-md">
             <q-btn color="positive" no-caps label="Nova Despesa" @click="openModalNovaDespesa" />
           </div>
-          <q-table
-            class="full-width fixar-ultima-coluna-tabela"
-            :columns="colunas"
-            :rows="rows"
-            :rows-per-page-options="[10, 20, 50, 100]"
-          >
-            <template #body="props">
-              <q-tr :props="props">
-                <q-td class="row items-center q-gutter-x-md">
-                  <span>{{ props.row.descricao }}</span>
-                  <q-icon
-                    v-if="props.row.observacao"
-                    class="cursor-pointer"
-                    size="xs"
-                    color="info"
-                    :name="icons.fasCircleInfo"
-                    @click="openModalGenerico(props.row.observacao)"
-                  />
-                </q-td>
-                <q-td>
-                  {{ formatarData(props.row.data) }}
-                </q-td>
-                <q-td> <strong>R$</strong> {{ formatarPreco(props.row.preco) }} </q-td>
-                <q-td>
-                  <div class="row q-gutter-x-md no-wrap">
-                    <q-icon
-                      class="cursor-pointer"
-                      size="xs"
-                      color="primary"
-                      :name="icons.fasPenToSquare"
-                    />
-                    <q-icon
-                      class="cursor-pointer"
-                      size="xs"
-                      color="negative"
-                      :name="icons.fasCircleXmark"
-                    />
-                  </div>
-                </q-td>
-              </q-tr>
-            </template>
-          </q-table>
+
+          <tabela-component :rows="rows" @open-modal-observacao="openModalGenerico($event)" />
         </q-item>
       </q-card-section>
     </q-card>
   </q-item>
+
+  <q-item v-else class="column q-pa-none">
+    <span class="full-width text-bold text-center text-h6">Registrar Nova Despesa</span>
+
+    <q-card class="full-width q-py-md q-mt-md">
+      <div class="row justify-center items-center">
+        <span class="text-h6">Mês Filtrado</span>
+        <q-icon class="q-pl-md" size="xs" :name="icons.fasCalendarCheck" />
+      </div>
+      <div class="row justify-center">
+        <span class="text-center text-h6">{{ mesVigente }}</span>
+      </div>
+    </q-card>
+
+    <q-card class="full-width q-py-md q-mt-md">
+      <div class="row justify-center items-center q-pb-md">
+        <span class="text-h6">Total</span>
+        <q-icon class="q-pl-md" size="xs" :name="icons.fasSackDollar" />
+      </div>
+      <div class="row justify-center items-center q-gutter-x-sm">
+        <span class="text-h6">R$ {{ formatarPreco(valorTotal) }}</span>
+        <q-icon
+          class="cursor-pointer"
+          size="sm"
+          color="secondary"
+          :name="icons.fasCopy"
+          @click="copiar(valorTotal)"
+        >
+          <q-tooltip> Copiar </q-tooltip>
+        </q-icon>
+      </div>
+    </q-card>
+
+    <q-card class="full-width q-mt-md">
+      <div class="row q-gutter-sm items-center q-pa-md">
+        <span class="text-bold">Filtros</span>
+      </div>
+      <form-despesa
+        ref="formularioComponente"
+        @emit-descricao="form.descricao = $event"
+        @emit-data="form.data = $event"
+        @emit-preco="form.preco = $event"
+        :is-required="false"
+        :is-data-mes-ano="true"
+      >
+        <template #botoes>
+          <q-item class="row q-gutter-md col-12">
+            <q-btn no-caps color="primary" label="Filtrar" @click="filtrarDespesa" />
+            <q-btn no-caps color="warning" label="Limpar" @click="limparCampos" />
+          </q-item>
+        </template>
+      </form-despesa>
+    </q-card>
+
+    <q-card class="full-width q-mt-md">
+      <div class="row q-px-md q-py-md">
+        <q-btn color="positive" no-caps label="Nova Despesa" @click="openModalNovaDespesa" />
+      </div>
+
+      <tabela-component :rows="rows" @open-modal-observacao="openModalGenerico($event)" />
+    </q-card>
+  </q-item>
+
   <modal-nova-despesa ref="despesaDialog" @carregar-tabela="obterTodasDespesas" />
+
   <modal-generico ref="modalGenerico">
     <template #titulo>
       <span class="text-h6">Detalhes da Observação</span>
@@ -143,14 +167,13 @@ import {
 import { copyToClipboard } from 'quasar';
 import { notify } from 'src/utils/notifyUtils';
 
-import type { ITabela } from 'src/interfaces/TabelaInterface';
 import type { IDespesa } from 'src/interfaces/DespesaInterface';
-import { format, parseISO } from 'date-fns';
 
 import FormDespesa from 'src/components/forms/FormDespesa.vue';
 
 import ModalNovaDespesa from 'src/components/dialogs/ModalNovaDespesa.vue';
 import ModalGenerico from 'src/components/dialogs/ModalGenerico.vue';
+import TabelaComponent from 'src/components/forms/Tabela.vue';
 
 import { usuarioStore } from 'src/stores/UsuarioStore';
 
@@ -163,52 +186,7 @@ import { MesesConstant } from 'src/constants/MesesConst';
 
 import { filtrarDespesa } from 'src/services/DespesaService';
 
-const colunas = [
-  {
-    name: 'descricao',
-    required: true,
-    label: 'Descrição',
-    align: 'left',
-    field: 'descricao',
-    sortable: false,
-    headerClasses: '',
-    headerStyle: 'font-size: 13px; font-weight: bold; background-color: #f8f9fa',
-    style: '',
-  },
-  {
-    name: 'data',
-    required: true,
-    label: 'Data da Despesa',
-    align: 'left',
-    field: 'data',
-    sortable: false,
-    headerClasses: '',
-    headerStyle: 'font-size: 13px; font-weight: bold; background-color: #f8f9fa',
-    style: '',
-  },
-  {
-    name: 'preco',
-    required: true,
-    label: 'Preço pago',
-    align: 'left',
-    field: 'preco',
-    sortable: false,
-    headerClasses: '',
-    headerStyle: 'font-size: 13px; font-weight: bold; background-color: #f8f9fa',
-    style: '',
-  },
-  {
-    name: 'acao',
-    required: true,
-    label: 'Ações',
-    align: 'left',
-    field: 'acao',
-    sortable: false,
-    headerClasses: '',
-    headerStyle: 'font-size: 13px; font-weight: bold; background-color: #dbead5; width: 8%',
-    style: '',
-  },
-] as Array<ITabela>;
+import { useQuasar } from 'quasar';
 
 export default defineComponent({
   name: 'DespesaComponent',
@@ -217,6 +195,7 @@ export default defineComponent({
     FormDespesa,
     ModalNovaDespesa,
     ModalGenerico,
+    TabelaComponent,
   },
 
   data() {
@@ -238,11 +217,11 @@ export default defineComponent({
       },
 
       valorTotal: shallowRef<number>(0),
-      colunas,
       rows: ref<Array<IDespesa>>([]),
       usuarioStoreInstance,
       mesVigente: ref(MesesConstant()[new Date().getMonth()]),
       observacao: shallowRef<string>(''),
+      $q: useQuasar(),
     };
   },
 
@@ -261,18 +240,6 @@ export default defineComponent({
         .catch(() => {
           notify('negative', 'Erro ao copiar o valor total.');
         });
-    },
-
-    formatarData(data: string): string {
-      const parsedDate = parseISO(data);
-      return format(parsedDate, 'dd/MM/yyyy');
-    },
-
-    formatarPreco(preco: number) {
-      return new Intl.NumberFormat('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(preco);
     },
 
     openModalNovaDespesa(): void {
@@ -342,6 +309,13 @@ export default defineComponent({
       this.form.data = '';
       this.form.preco = '';
       this.$refs.formularioComponente.limparCampos();
+    },
+
+    formatarPreco(preco: number) {
+      return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(preco);
     },
   },
 });
