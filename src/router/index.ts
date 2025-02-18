@@ -24,11 +24,15 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   Router.beforeEach((to, from, next) => {
     const usuarioStoreInstance = usuarioStore();
 
-    if (to.meta.requiresAuth && usuarioStoreInstance.user.uid === '') {
-      next({ name: 'login' });
-    } else {
-      next();
+    if (to.meta.requiresAuth && !usuarioStoreInstance.user.uid) {
+      next('/login');
+    } 
+    
+    if ((to.fullPath === '/login' || to.fullPath === '/') && usuarioStoreInstance.user.uid) {
+      next('/home');
     }
+
+    next();
   });
 
   return Router;

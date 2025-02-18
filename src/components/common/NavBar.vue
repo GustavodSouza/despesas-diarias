@@ -5,7 +5,7 @@
         <q-btn flat @click="drawer = !drawer" round dense icon="menu" />
         <q-toolbar-title>Despesas Diárias</q-toolbar-title>
       </div>
-      <div class="row" v-if="usuarioStoreInstance.user.uid !== ''">
+      <div class="row" v-if="usuarioStoreInstance.user.uid">
         <q-avatar color="white cursor-pointer" text-color="black">
           <span> {{ getIniciaisUsuario }} </span>
 

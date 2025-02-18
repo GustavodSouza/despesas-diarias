@@ -309,6 +309,7 @@ export default defineComponent({
       this.form.data = '';
       this.form.preco = '';
       this.$refs.formularioComponente.limparCampos();
+      this.obterTodasDespesas();
     },
 
     formatarPreco(preco: number) {

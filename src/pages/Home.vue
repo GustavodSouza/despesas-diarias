@@ -5,6 +5,10 @@
         <span class="text-h5"
           >Bem-vindo(a) <strong>{{ getNomeCompletoUsuario }}</strong></span
         >
+
+        <q-item>
+          <h4>Em breve resumo de despesas aqui!</h4>
+        </q-item>
       </q-card-section>
       <q-card-section> </q-card-section>
     </q-card>

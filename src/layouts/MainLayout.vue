@@ -41,12 +41,7 @@ const menuList = [
     separator: true,
     path: '/perfil',
   },
-  {
-    icon: 'settings',
-    label: 'Modo Noturno',
-    separator: false,
-    path: '',
-  },
+
   {
     icon: 'feedback',
     label: 'Feedback',

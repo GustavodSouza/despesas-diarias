@@ -111,7 +111,7 @@
             <q-btn
               color="warning"
               no-caps
-              label="Limpar Campos"
+              label="Limpar"
               @click="limparCampos"
               hide-bottom-space
             />
