@@ -16,26 +16,26 @@
     </q-item>
     <q-item class="column col-md-4 col-sm-12 col-xs-12">
       <label class="text-bold" for="data">Data da Despesa</label>
-      <q-input
-        v-if="isDataMesAno"
-        id="data"
-        class="full-width"
-        v-model="form.data"
-        :type="'month' as any"
-        outlined
-        @update:model-value="emitData"
-        :rules="isRequired ? [validarCampo] : []"
-      />
-      <q-input
-        v-else
-        id="data"
-        class="full-width"
-        v-model="form.data"
-        type="date"
-        outlined
-        @update:model-value="emitData"
-        :rules="isRequired ? [validarCampo] : []"
-      />
+      <q-field v-if="isDataMesAno" v-model="form.data" outlined>
+        <input
+          id="data"
+          class="q-field__native"
+          v-model="form.data"
+          type="month"
+          @update:model-value="emitData"
+          :rules="isRequired ? [validarCampo] : []"
+        />
+      </q-field>
+      <q-field v-else v-model="form.data" outlined>
+        <input
+          id="data"
+         class="q-field__native"
+          v-model="form.data"
+          type="date"
+          @update:model-value="emitData"
+          :rules="isRequired ? [validarCampo] : []"
+        />
+      </q-field>
     </q-item>
     <q-item class="column col-md-4 col-sm-12 col-xs-12">
       <label class="text-bold" for="preco">Preço da Despesa</label>
@@ -149,6 +149,7 @@ export default defineComponent({
       this.form.descricao = '';
       this.form.data = '';
       this.form.preco = '';
+      this.form.observacao = '';
     },
   },
 });

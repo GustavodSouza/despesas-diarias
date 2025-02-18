@@ -52,6 +52,7 @@
             :active="menuItem.label === 'Outbox'"
             v-ripple
             @click="navegar(menuItem.path)"
+            :class="{ 'marcar-menu' : marcarMenu(menuItem.path) }"
           >
             <q-item-section avatar>
               <q-icon :name="menuItem.icon" />
@@ -101,23 +102,7 @@ export default defineComponent({
 
   computed: {
     getIniciaisUsuario(): string {
-      let iniciais = '';
-
-      if (this.usuarioStoreInstance.getUsuario.nome !== '') {
-        const palavrasSobrenome = this.usuarioStoreInstance.getUsuario.sobrenome.split(' ');
-        const sobrenomeFiltrado = palavrasSobrenome.filter(
-          (palavra) => !['de', 'da', 'do', 'das', 'dos'].includes(palavra.toLowerCase()),
-        );
-
-        // Obter as iniciais
-        const inicialNome = this.usuarioStoreInstance.getUsuario.nome[0];
-        const inicialSobrenome =
-          sobrenomeFiltrado.length > 0 ? sobrenomeFiltrado[sobrenomeFiltrado.length - 1][0] : '';
-
-        iniciais = (inicialNome + inicialSobrenome).toUpperCase();
-      }
-
-      return iniciais;
+      return this.usuarioStoreInstance.getUsuario.nome.charAt(0);
     },
 
     getNomeCompletoUsuario(): string {
@@ -139,6 +124,16 @@ export default defineComponent({
         })
         .finally(hideLoader);
     },
+
+    marcarMenu(path: string): boolean {
+      return this.$route.fullPath === path;
+    }
   },
 });
 </script>
+<style>
+.marcar-menu {
+  background-color: rgb(197, 197, 197);
+}
+
+</style>
