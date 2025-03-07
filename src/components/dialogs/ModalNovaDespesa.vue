@@ -52,11 +52,13 @@ import { usuarioStore } from 'src/stores/UsuarioStore';
 import { notify } from 'src/utils/notifyUtils';
 import { hideLoader, showLoader } from 'src/plugins/loaderPlugin';
 
-import type { IDespesa } from 'src/interfaces/DespesaInterface';
+// import type { IDespesa } from 'src/interfaces/DespesaInterface';
 
-import { criarDespesa } from 'src/services/DespesaService';
+import { postDespesa } from 'src/services/DespesaService';
 
 import { fasPlus, fasMinus } from '@quasar/extras/fontawesome-v6';
+import { MesesConstant } from 'src/constants/MesesConst';
+import { formatarMonetarioBRparaArmazenamento } from 'src/helpers/monetario-helpers';
 
 export default defineComponent({
   name: 'ModalNovaDespesaComponent',
@@ -103,14 +105,20 @@ export default defineComponent({
         .then(async (isFormularioValido: boolean) => {
           if (isFormularioValido) {
             showLoader();
-            const payloadDespesa: IDespesa = {
+
+            const date = new Date(this.form.data);
+
+            const payloadDespesa = {
               descricao: this.form.descricao,
               data: this.form.data,
-              preco: this.form.preco,
+              preco: formatarMonetarioBRparaArmazenamento(this.form.preco),
               observacao: this.form.observacao,
+              dt_reg: new Date().toLocaleString(),
+              mes_ref: MesesConstant()[date.getMonth()],
+              ano_ref: date.getFullYear(),
             };
 
-            await criarDespesa(payloadDespesa, this.usuarioStoreInstance.user.uid)
+            await postDespesa(payloadDespesa, this.usuarioStoreInstance.user.uid)
               .then(() => {
                 notify('positive', 'Despesa criada com sucesso.');
                 this.limparCampos();

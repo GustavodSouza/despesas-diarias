@@ -71,7 +71,11 @@
             <q-btn color="positive" no-caps label="Nova Despesa" @click="openModalNovaDespesa" />
           </div>
 
-          <tabela-component :rows="rows" @open-modal-observacao="openModalGenerico($event)" />
+          <tabela-component
+            :rows="rows"
+            @open-modal-observacao="openModalGenerico($event)"
+            @excluir-despesa="excluirDespesa"
+          />
         </q-item>
       </q-card-section>
     </q-card>
@@ -177,7 +181,7 @@ import TabelaComponent from 'src/components/forms/Tabela.vue';
 
 import { usuarioStore } from 'src/stores/UsuarioStore';
 
-import { obterTodasDespesasPorIdUsuario } from 'src/services/DespesaService';
+import { deleteDespesa, obterTodasDespesasPorIdUsuario } from 'src/services/DespesaService';
 import { hideLoader, showLoader } from 'src/plugins/loaderPlugin';
 
 import { calcularTotalDespesas } from 'src/helpers/monetario-helpers';
@@ -219,17 +223,37 @@ export default defineComponent({
       valorTotal: shallowRef<number>(0),
       rows: ref<Array<IDespesa>>([]),
       usuarioStoreInstance,
-      mesVigente: ref(MesesConstant()[new Date().getMonth()]),
+      mesVigente: ref(),
       observacao: shallowRef<string>(''),
       $q: useQuasar(),
     };
   },
 
-  async mounted() {
+  mounted() {
     this.obterTodasDespesas();
+    this.mesVigente = this.obterMesVigente();
+  },
+
+  watch: {
+    'form.data': {
+      handler(value) {
+        debugger;
+        if (!value) {
+          this.mesVigente = this.obterMesVigente();
+        } else {
+          const mesFiltrado = new Date(value + '-01').getMonth() + 1;
+          this.mesVigente = MesesConstant()[mesFiltrado];
+        }
+      },
+    },
   },
 
   methods: {
+    obterMesVigente(): string {
+      const mesVigente = MesesConstant()[new Date().getMonth()];
+      return mesVigente ?? '';
+    },
+
     copiar(valorTotal: number): void {
       const valorFormatado = this.formatarPreco(valorTotal);
 
@@ -256,12 +280,11 @@ export default defineComponent({
 
       await obterTodasDespesasPorIdUsuario(this.usuarioStoreInstance.user.uid)
         .then((querySnapshot) => {
-          if (!querySnapshot.empty) {
-            this.rows = querySnapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(), // Adiciona os dados da despesa
-            }));
-          }
+          this.rows = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(), // Adiciona os dados da despesa
+          }));
+          console.log(this.rows);
         })
         .catch(() => {
           notify(
@@ -316,6 +339,21 @@ export default defineComponent({
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(preco);
+    },
+
+    excluirDespesa(despesa: IDespesa): void {
+      showLoader();
+
+      const idDespesa = despesa.id ?? '';
+      deleteDespesa(this.usuarioStoreInstance.user.uid, idDespesa)
+        .then(() => {
+          notify('positive', 'Despesa excluída com sucesso!');
+          this.obterTodasDespesas();
+        })
+        .catch(() => {
+          console.error('Erro ao excluír a despesa!');
+        })
+        .finally(hideLoader);
     },
   },
 });

@@ -30,6 +30,7 @@
               size="xs"
               color="negative"
               :name="icons.fasCircleXmark"
+              @click="excluirDespesa(props.row)"
             />
           </div>
         </q-td>
@@ -132,6 +133,10 @@ export default defineComponent({
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(preco);
+    },
+
+    excluirDespesa(despesa: IDespesa): void {
+      this.$emit('excluir-despesa', despesa);
     },
   },
 });

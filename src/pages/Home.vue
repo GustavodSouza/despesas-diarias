@@ -5,6 +5,7 @@
         <span class="text-h5"
           >Bem-vindo(a) <strong>{{ getNomeCompletoUsuario }}</strong></span
         >
+        <p>Sistema em fase de construção!</p>
       </q-card-section>
       <q-card-section> </q-card-section>
     </q-card>

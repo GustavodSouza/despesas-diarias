@@ -4,20 +4,20 @@ import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { formatarMonetarioBRparaArmazenamento } from 'src/helpers/monetario-helpers';
 import { MesesConstant } from 'src/constants/MesesConst';
 
-export const criarDespesa = async (despesaModel: IDespesa, uidUsuario: string) => {
-  const despesasRef = collection(db, 'users', uidUsuario, 'despesas');
+export const postDespesa = async (despesaModel: IDespesa, uidUsuario: string) => {
+  const despesaRef = collection(db, 'users', uidUsuario, 'despesas');
 
-  const date = new Date(despesaModel.data);
+  return await addDoc(despesaRef, despesaModel);
+};
 
-  return await addDoc(despesasRef, {
-    descricao: despesaModel.descricao,
-    preco: formatarMonetarioBRparaArmazenamento(despesaModel.preco),
-    data: despesaModel.data,
-    dt_reg: new Date().toLocaleString(),
-    mes_ref: MesesConstant()[date.getMonth()],
-    ano_ref: date.getFullYear(),
-    observacao: despesaModel.observacao ?? '',
-  });
+export const deleteDespesa = async (uidUsuario: string, uidDespesa: string) => {
+  // Referência para o documento do usuário
+  const userRef = db.collection('users').doc(uidUsuario);
+
+  // Referência para a despesa específica na subcoleção 'despesas'
+  const despesaRef = userRef.collection('despesas').doc(uidDespesa);
+
+  return await despesaRef.delete();
 };
 
 export const obterTodasDespesasPorIdUsuario = async (uidUsuario: string) => {

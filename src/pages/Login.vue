@@ -224,8 +224,15 @@ export default defineComponent({
               this.$router.push('/home');
             })
             .catch((error) => {
-              if (error.code === 'auth/invalid-credential') {
+              if (
+                error.code === 'auth/invalid-credential' ||
+                error.code === 'auth/wrong-password'
+              ) {
                 notify('negative', 'Credenciais inválidas!');
+              }
+
+              if (error.code === 'auth/user-not-found') {
+                notify('negative', 'Usuário não encontrado em nossas bases!');
               }
             })
             .finally(hideLoader);
