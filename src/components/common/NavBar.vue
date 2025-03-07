@@ -5,7 +5,7 @@
         <q-btn flat @click="drawer = !drawer" round dense icon="menu" />
         <q-toolbar-title>Despesas Diárias</q-toolbar-title>
       </div>
-      <div class="row" v-if="usuarioStoreInstance.user.uid !== ''">
+      <div class="row" v-if="usuarioStoreInstance.user.uid">
         <q-avatar color="white cursor-pointer" text-color="black">
           <span> {{ getIniciaisUsuario }} </span>
 
@@ -69,7 +69,7 @@
 <script lang="ts">
 import { defineComponent, shallowRef } from 'vue';
 import { usuarioStore } from 'src/stores/UsuarioStore';
-import { realizarLogout } from 'src/services/UsuarioService';
+import { realizarLogoutService } from 'src/services/UsuarioService';
 import { hideLoader, showLoader } from 'src/plugins/loaderPlugin';
 
 interface IItensMenu {
@@ -101,23 +101,7 @@ export default defineComponent({
 
   computed: {
     getIniciaisUsuario(): string {
-      let iniciais = '';
-
-      if (this.usuarioStoreInstance.getUsuario.nome !== '') {
-        const palavrasSobrenome = this.usuarioStoreInstance.getUsuario.sobrenome.split(' ');
-        const sobrenomeFiltrado = palavrasSobrenome.filter(
-          (palavra) => !['de', 'da', 'do', 'das', 'dos'].includes(palavra.toLowerCase()),
-        );
-
-        // Obter as iniciais
-        const inicialNome = this.usuarioStoreInstance.getUsuario.nome[0];
-        const inicialSobrenome =
-          sobrenomeFiltrado.length > 0 ? sobrenomeFiltrado[sobrenomeFiltrado.length - 1][0] : '';
-
-        iniciais = (inicialNome + inicialSobrenome).toUpperCase();
-      }
-
-      return iniciais;
+      return this.usuarioStoreInstance.getUsuario.nome.charAt(0);
     },
 
     getNomeCompletoUsuario(): string {
@@ -133,9 +117,10 @@ export default defineComponent({
     async sair(): Promise<void> {
       showLoader();
 
-      await realizarLogout()
+      await realizarLogoutService()
         .then(() => {
-          this.usuarioStoreInstance.limparUsuario();
+          this.usuarioStoreInstance.reset();
+          this.$router.push('/login');
         })
         .finally(hideLoader);
     },

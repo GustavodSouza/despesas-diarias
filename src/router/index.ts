@@ -24,7 +24,7 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   Router.beforeEach((to, from, next) => {
     const usuarioStoreInstance = usuarioStore();
 
-    if (to.meta.requiresAuth && usuarioStoreInstance.user.uid === '') {
+    if (to.meta.requiresAuth && !usuarioStoreInstance.user.uid) {
       next({ name: 'login' });
     } else {
       next();

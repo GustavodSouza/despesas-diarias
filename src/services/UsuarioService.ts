@@ -1,4 +1,5 @@
 import type IUsuario from 'src/interfaces/UsuarioInterface';
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -7,23 +8,27 @@ import {
   signInWithPopup,
   fetchSignInMethodsForEmail,
 } from 'firebase/auth';
+
 import { db, auth } from 'src/boot/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { usuarioStore } from 'src/stores/UsuarioStore';
 
-export const criarContaUsuario = async (usuarioModel: IUsuario) => {
+export const criarContaUsuarioService = async (usuarioModel: IUsuario) => {
   return await createUserWithEmailAndPassword(auth, usuarioModel.email, usuarioModel.senha);
 };
 
-export const realizarLogin = async (usuarioModel: IUsuario) => {
+export const realizarLoginService = async (usuarioModel: IUsuario) => {
   return await signInWithEmailAndPassword(auth, usuarioModel.email, usuarioModel.senha);
 };
 
-export const realizarLogout = async () => {
+export const verificarSeUsuarioExisteNaBaseComEmailService = async (usuarioModel: IUsuario) => {
+  return await fetchSignInMethodsForEmail(auth, usuarioModel.email);
+};
+
+export const realizarLogoutService = async () => {
   return await signOut(auth);
 };
 
-export const buscarUsuarioPorUid = async (uidUsuario: string) => {
+export const buscarUsuarioPorUidService = async (uidUsuario: string) => {
   const users = collection(db, 'users');
   const q = query(users, where('uid', '==', uidUsuario));
 
@@ -32,35 +37,13 @@ export const buscarUsuarioPorUid = async (uidUsuario: string) => {
   });
 };
 
-export const atribuirInformacoesPerfilUsuario = async (usuarioModel: IUsuario) => {
+export const atribuirInformacoesPerfilUsuarioService = async (usuarioModel: IUsuario) => {
   const usersRef = db.collection('users');
   const newDocument = usersRef.doc(usuarioModel.uid);
   return await newDocument.set(usuarioModel);
 };
 
-export const realizarLoginGoogle = async () => {
+export const realizarLoginGoogleService = async () => {
   const provider = new GoogleAuthProvider();
-  const usuarioStoreInstance = usuarioStore() as ReturnType<typeof usuarioStore>;
-
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-
-    usuarioStoreInstance.user.uid = user.uid;
-    usuarioStoreInstance.user.nome = 'Teste';
-    usuarioStoreInstance.user.sobrenome = 'Teste 2';
-
-    console.log('Usuário logado com Google:', user);
-
-    // Verificar métodos de autenticação existentes
-    const methods = await fetchSignInMethodsForEmail(auth, user.email as string);
-
-    if (methods.includes('password')) {
-      console.log('Conta já vinculada ao método e-mail/senha.');
-    } else {
-      console.log('Conta vinculada apenas ao Google.');
-    }
-  } catch (error) {
-    console.error('Erro ao fazer login com Google:', error.message);
-  }
+  return await signInWithPopup(auth, provider);
 };

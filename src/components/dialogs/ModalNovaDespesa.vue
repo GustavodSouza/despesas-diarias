@@ -114,6 +114,7 @@ export default defineComponent({
               .then(() => {
                 notify('positive', 'Despesa criada com sucesso.');
                 this.limparCampos();
+                this.toogleModal(false);
                 this.$emit('carregarTabela');
               })
               .catch(() => {
