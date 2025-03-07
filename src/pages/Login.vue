@@ -220,12 +220,16 @@ export default defineComponent({
               this.atribuirInformacoesUsuario(this.usuarioStoreInstance.user);
             })
             .catch((error) => {
-              if (error.code === 'auth/email-already-in-use') {
-                notify('negative', 'Conta com esse email já existe!');
-                return;
+              if (
+                error.code === 'auth/invalid-credential' ||
+                error.code === 'auth/wrong-password'
+              ) {
+                notify('negative', 'Credenciais inválidas!');
               }
 
-              notify('negative', 'Erro ao criar a conta.');
+              if (error.code === 'auth/user-not-found') {
+                notify('negative', 'Usuário não encontrado em nossas bases!');
+              }
             })
             .finally(hideLoader);
         }

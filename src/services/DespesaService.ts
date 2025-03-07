@@ -1,23 +1,32 @@
 import type { IDespesa } from 'src/interfaces/DespesaInterface';
 import { db } from 'src/boot/firebase';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  doc,
+  setDoc,
+  deleteDoc,
+} from 'firebase/firestore';
 import { formatarMonetarioBRparaArmazenamento } from 'src/helpers/monetario-helpers';
 import { MesesConstant } from 'src/constants/MesesConst';
 
-export const criarDespesa = async (despesaModel: IDespesa, uidUsuario: string) => {
-  const despesasRef = collection(db, 'users', uidUsuario, 'despesas');
+export const postDespesa = async (despesaModel: IDespesa, uidUsuario: string) => {
+  const despesaRef = collection(db, 'users', uidUsuario, 'despesas');
 
-  const date = new Date(despesaModel.data);
+  return await addDoc(despesaRef, despesaModel);
+};
 
-  return await addDoc(despesasRef, {
-    descricao: despesaModel.descricao,
-    preco: formatarMonetarioBRparaArmazenamento(despesaModel.preco),
-    data: despesaModel.data,
-    dt_reg: new Date().toLocaleString(),
-    mes_ref: MesesConstant()[date.getMonth()],
-    ano_ref: date.getFullYear(),
-    observacao: despesaModel.observacao ?? '',
-  });
+export const updateDespesa = async (despesa: IDespesa, uidUsuario: string) => {
+  const despesaRef = doc(db, `users/${uidUsuario}/despesas/${despesa.id}`);
+  return await setDoc(despesaRef, despesa, { merge: true });
+};
+
+export const deleteDespesa = async (uidUsuario: string, uidDespesa: string) => {
+  const despesaRef = doc(db, `users/${uidUsuario}/despesas/${uidDespesa}`);
+  return await deleteDoc(despesaRef);
 };
 
 export const obterTodasDespesasPorIdUsuario = async (uidUsuario: string) => {

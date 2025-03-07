@@ -1,11 +1,11 @@
 <template>
-  <q-dialog v-model="isOpen">
+  <q-dialog v-model="isOpen" @hide="limparCampos">
     <q-card style="max-width: 930px; width: 930px">
       <q-card-section class="row items-center q-pb-none">
         <q-card class="full-width" flat>
           <q-item class="row justify-between">
             <div class="row items-center q-gutter-md">
-              <span class="text-h6">Registrar Nova Despesa</span>
+              <span class="text-h6 custom-color-primary">Registrar Nova Despesa</span>
               <q-icon
                 class="cursor-pointer"
                 :name="isExpandirFormulario ? icons.fasMinus : icons.fasPlus"
@@ -52,11 +52,15 @@ import { usuarioStore } from 'src/stores/UsuarioStore';
 import { notify } from 'src/utils/notifyUtils';
 import { hideLoader, showLoader } from 'src/plugins/loaderPlugin';
 
-import type { IDespesa } from 'src/interfaces/DespesaInterface';
+// import type { IDespesa } from 'src/interfaces/DespesaInterface';
 
-import { criarDespesa } from 'src/services/DespesaService';
+import { postDespesa, updateDespesa } from 'src/services/DespesaService';
 
 import { fasPlus, fasMinus } from '@quasar/extras/fontawesome-v6';
+import { MesesConstant } from 'src/constants/MesesConst';
+import { formatarMonetarioBRparaArmazenamento } from 'src/helpers/monetario-helpers';
+import type { IDespesa } from 'src/interfaces/DespesaInterface';
+import { nextTick } from 'process';
 
 export default defineComponent({
   name: 'ModalNovaDespesaComponent',
@@ -78,6 +82,7 @@ export default defineComponent({
         data: shallowRef<string>(''),
         preco: shallowRef<string>(''),
         observacao: shallowRef<string>(''),
+        id: shallowRef<string>(''),
       },
       icons: {
         fasPlus,
@@ -85,12 +90,40 @@ export default defineComponent({
       },
       isLimparCampos: shallowRef<boolean>(false),
       isExpandirFormulario: shallowRef<boolean>(false),
+      isEditar: shallowRef<boolean>(false),
     };
   },
 
   methods: {
-    openModal() {
+    openModal(params: IDespesa) {
       this.toogleModal(true);
+
+      nextTick(() => {
+        this.setParams(params);
+      });
+    },
+
+    setParams(params: IDespesa): void {
+      if (params) {
+        debugger;
+        this.$refs.formularioComponente.form.descricao = params.descricao;
+        this.$refs.formularioComponente.form.data = params.data;
+        this.$refs.formularioComponente.form.preco = params.preco;
+
+        this.form.descricao = params.descricao;
+        this.form.data = params.data;
+        this.form.preco = params.preco;
+        this.form.id = params.id;
+
+        if (params.observacao !== '') {
+          this.$refs.formularioComponente.form.observacao = params.observacao;
+          this.isExpandirFormulario = true;
+        }
+
+        if (params.id) {
+          this.isEditar = true;
+        }
+      }
     },
 
     toogleModal(valor: boolean): void {
@@ -103,29 +136,61 @@ export default defineComponent({
         .then(async (isFormularioValido: boolean) => {
           if (isFormularioValido) {
             showLoader();
-            const payloadDespesa: IDespesa = {
+
+            const date = new Date(this.form.data);
+
+            const payloadDespesa = {
               descricao: this.form.descricao,
               data: this.form.data,
-              preco: this.form.preco,
+              preco: formatarMonetarioBRparaArmazenamento(this.form.preco),
               observacao: this.form.observacao,
+              dt_reg: new Date().toLocaleString(),
+              mes_ref: MesesConstant()[date.getMonth()],
+              ano_ref: date.getFullYear(),
+              id: this.form.id ?? '',
             };
 
-            await criarDespesa(payloadDespesa, this.usuarioStoreInstance.user.uid)
-              .then(() => {
-                notify('positive', 'Despesa criada com sucesso.');
-                this.limparCampos();
-                this.toogleModal(false);
-                this.$emit('carregarTabela');
-              })
-              .catch(() => {
-                notify('negative', 'Erro ao registrar a despesa. Tente novamente mais tarde!');
-              })
-              .finally(() => {
-                hideLoader();
-              });
+            if (this.isEditar) {
+              this.updateDespesa(payloadDespesa);
+              return;
+            }
+
+            this.postDespesa(payloadDespesa);
           } else {
             notify('warning', 'Preencha todos os campos.');
           }
+        });
+    },
+
+    postDespesa(despesa: IDespesa): void {
+      postDespesa(despesa, this.usuarioStoreInstance.user.uid)
+        .then(() => {
+          notify('positive', 'Despesa criada com sucesso.');
+          this.limparCampos();
+          this.toogleModal(false);
+          this.$emit('carregarTabela');
+        })
+        .catch(() => {
+          notify('negative', 'Erro ao registrar a despesa. Tente novamente mais tarde!');
+        })
+        .finally(() => {
+          hideLoader();
+        });
+    },
+
+    updateDespesa(despesa: IDespesa): void {
+      updateDespesa(despesa, this.usuarioStoreInstance.user.uid)
+        .then(() => {
+          notify('positive', 'Despesa atualizada com sucesso.');
+          this.limparCampos();
+          this.toogleModal(false);
+          this.$emit('carregarTabela');
+        })
+        .catch(() => {
+          notify('negative', 'Erro ao atualizar a despesa. Tente novamente mais tarde!');
+        })
+        .finally(() => {
+          hideLoader();
         });
     },
 
@@ -134,7 +199,7 @@ export default defineComponent({
       this.form.data = '';
       this.form.preco = '';
       this.form.observacao = '';
-      this.$refs.formularioComponente.limparCampos();
+      this.isExpandirFormulario = false;
     },
   },
 });

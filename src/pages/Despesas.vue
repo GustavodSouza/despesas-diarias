@@ -2,7 +2,7 @@
   <q-item v-if="!$q.platform.is.mobile">
     <q-card class="full-width">
       <q-card-section>
-        <span class="text-bold text-h6">Registrar Nova Despesa</span>
+        <span class="text-bold text-h6 custom-color-primary">Registrar Nova Despesa</span>
       </q-card-section>
 
       <q-card-section>
@@ -10,25 +10,34 @@
           <q-item class="col-md-6 col-12">
             <q-card class="full-width q-pa-md q-pr-md">
               <div class="row items-center q-pb-md">
-                <span class="text-h6">Mês Filtrado</span>
-                <q-icon class="q-pl-md" size="xs" :name="icons.fasCalendarCheck" />
+                <span class="text-h6 custom-color-secondary">Mês Filtrado</span>
+                <q-icon
+                  class="q-pl-md custom-color-secondary"
+                  size="xs"
+                  :name="icons.fasCalendarCheck"
+                />
               </div>
-              <span class="text-h6">{{ mesVigente }}</span>
+              <span class="text-h6 custom-color-tertiary">{{ mesVigente }}</span>
             </q-card>
           </q-item>
 
           <q-item class="col-md-6 col-12">
             <q-card class="full-width q-pa-md">
               <div class="row items-center q-pb-md">
-                <span class="text-h6">Total</span>
-                <q-icon class="q-pl-md" size="xs" :name="icons.fasSackDollar" />
+                <span class="text-h6 custom-color-secondary">Total</span>
+                <q-icon
+                  class="q-pl-md custom-color-secondary"
+                  size="xs"
+                  :name="icons.fasSackDollar"
+                />
               </div>
               <div class="row items-center q-gutter-x-sm">
-                <span class="text-h6">R$ {{ formatarPreco(valorTotal) }}</span>
+                <span class="text-h6 custom-color-tertiary"
+                  >R$ {{ formatarPreco(valorTotal) }}</span
+                >
                 <q-icon
-                  class="cursor-pointer"
+                  class="cursor-pointer custom-color-primary"
                   size="sm"
-                  color="secondary"
                   :name="icons.fasCopy"
                   @click="copiar(valorTotal)"
                 >
@@ -44,7 +53,7 @@
         <q-item class="row">
           <q-card class="full-width">
             <div class="row q-gutter-sm items-center q-pa-md">
-              <span class="text-bold">Filtros</span>
+              <span class="text-bold custom-color-secondary">Filtros</span>
             </div>
             <form-despesa
               ref="formularioComponente"
@@ -71,7 +80,12 @@
             <q-btn color="positive" no-caps label="Nova Despesa" @click="openModalNovaDespesa" />
           </div>
 
-          <tabela-component :rows="rows" @open-modal-observacao="openModalGenerico($event)" />
+          <tabela-component
+            :rows="rows"
+            @open-modal-observacao="openModalGenerico($event)"
+            @excluir-despesa="confirmarExclusao"
+            @editar-despesa="editarDespesa"
+          />
         </q-item>
       </q-card-section>
     </q-card>
@@ -139,7 +153,7 @@
     </q-card>
   </q-item>
 
-  <modal-nova-despesa ref="despesaDialog" @carregar-tabela="obterTodasDespesas" />
+  <modal-nova-despesa ref="modalNovaDespesa" @carregar-tabela="obterTodasDespesas" />
 
   <modal-generico ref="modalGenerico">
     <template #titulo>
@@ -151,6 +165,24 @@
           {{ observacao }}
         </span>
       </q-card>
+    </template>
+  </modal-generico>
+
+  <modal-generico ref="modalGenericoExcluirDespesa">
+    <template #titulo>
+      <span class="text-h6"
+        >Deseja excluír
+        <strong>
+          {{ despesaSelecionada ? despesaSelecionada.descricao : '' }}
+        </strong>
+        ?
+      </span>
+    </template>
+    <template #conteudo>
+      <div class="row q-gutter-md q-mb">
+        <q-btn label="Confirmar" color="positive" no-caps @click="excluirDespesa" />
+        <q-btn label="Cancelar" color="negative" no-caps @click="fecharModalExclusao" />
+      </div>
     </template>
   </modal-generico>
 </template>
@@ -177,7 +209,7 @@ import TabelaComponent from 'src/components/forms/Tabela.vue';
 
 import { usuarioStore } from 'src/stores/UsuarioStore';
 
-import { obterTodasDespesasPorIdUsuario } from 'src/services/DespesaService';
+import { deleteDespesa, obterTodasDespesasPorIdUsuario } from 'src/services/DespesaService';
 import { hideLoader, showLoader } from 'src/plugins/loaderPlugin';
 
 import { calcularTotalDespesas } from 'src/helpers/monetario-helpers';
@@ -219,17 +251,39 @@ export default defineComponent({
       valorTotal: shallowRef<number>(0),
       rows: ref<Array<IDespesa>>([]),
       usuarioStoreInstance,
-      mesVigente: ref(MesesConstant()[new Date().getMonth()]),
+      mesVigente: ref(),
       observacao: shallowRef<string>(''),
       $q: useQuasar(),
+      isFiltrar: shallowRef<boolean>(false),
+      despesaSelecionada: ref<IDespesa>(),
     };
   },
 
-  async mounted() {
+  mounted() {
     this.obterTodasDespesas();
+    this.mesVigente = this.obterMesVigente();
+  },
+
+  watch: {
+    'form.data': {
+      handler(value) {
+        debugger;
+        if (!value) {
+          this.mesVigente = this.obterMesVigente();
+        } else {
+          const mesFiltrado = new Date(value + '-01').getMonth() + 1;
+          this.mesVigente = MesesConstant()[mesFiltrado];
+        }
+      },
+    },
   },
 
   methods: {
+    obterMesVigente(): string {
+      const mesVigente = MesesConstant()[new Date().getMonth()];
+      return mesVigente ?? '';
+    },
+
     copiar(valorTotal: number): void {
       const valorFormatado = this.formatarPreco(valorTotal);
 
@@ -243,7 +297,7 @@ export default defineComponent({
     },
 
     openModalNovaDespesa(): void {
-      this.$refs.despesaDialog.openModal();
+      this.$refs.modalNovaDespesa.openModal();
     },
 
     openModalGenerico(observacao: string): void {
@@ -256,12 +310,10 @@ export default defineComponent({
 
       await obterTodasDespesasPorIdUsuario(this.usuarioStoreInstance.user.uid)
         .then((querySnapshot) => {
-          if (!querySnapshot.empty) {
-            this.rows = querySnapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(), // Adiciona os dados da despesa
-            }));
-          }
+          this.rows = querySnapshot.docs.map((doc) => ({
+            ...doc.data(),
+            id: doc.id,
+          }));
         })
         .catch(() => {
           notify(
@@ -283,12 +335,14 @@ export default defineComponent({
     async filtrarDespesa(): Promise<void> {
       showLoader();
 
+      this.isFiltrar = true;
+
       await filtrarDespesa(this.form, this.usuarioStoreInstance.user.uid)
         .then((querySnapshot) => {
           if (!querySnapshot.empty) {
             this.rows = querySnapshot.docs.map((doc) => ({
-              id: doc.id,
               ...doc.data(), // Adiciona os dados da despesa
+              id: doc.id,
             }));
           } else {
             this.rows = [];
@@ -309,6 +363,8 @@ export default defineComponent({
       this.form.data = '';
       this.form.preco = '';
       this.$refs.formularioComponente.limparCampos();
+      this.isFiltrar = false;
+      this.obterTodasDespesas();
     },
 
     formatarPreco(preco: number) {
@@ -316,6 +372,44 @@ export default defineComponent({
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(preco);
+    },
+
+    confirmarExclusao(despesa: IDespesa): void {
+      this.despesaSelecionada = despesa;
+      this.$refs.modalGenericoExcluirDespesa.openModal();
+    },
+
+    excluirDespesa(): void {
+      showLoader();
+
+      const idDespesa = this.despesaSelecionada.id ?? '';
+
+      deleteDespesa(this.usuarioStoreInstance.user.uid, idDespesa)
+        .then(() => {
+          notify('positive', 'Despesa excluída com sucesso!');
+
+          this.fecharModalExclusao();
+
+          if (this.isFiltrar) {
+            this.filtrarDespesa();
+            return;
+          }
+
+          this.obterTodasDespesas();
+        })
+        .catch(() => {
+          console.error('Erro ao excluír a despesa!');
+        })
+        .finally(hideLoader);
+    },
+
+    fecharModalExclusao(): void {
+      this.$refs.modalGenericoExcluirDespesa.toogleModal(false);
+    },
+
+    editarDespesa(despesa: IDespesa): void {
+      console.log(despesa);
+      this.$refs.modalNovaDespesa.openModal(despesa);
     },
   },
 });

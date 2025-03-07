@@ -24,12 +24,19 @@
         <q-td> <strong>R$</strong> {{ formatarPreco(props.row.preco) }} </q-td>
         <q-td>
           <div class="row q-gutter-x-md no-wrap">
-            <q-icon class="cursor-pointer" size="xs" color="primary" :name="icons.fasPenToSquare" />
+            <q-icon
+              class="cursor-pointer"
+              size="xs"
+              color="primary"
+              :name="icons.fasPenToSquare"
+              @click="editarDespesa(props.row)"
+            />
             <q-icon
               class="cursor-pointer"
               size="xs"
               color="negative"
               :name="icons.fasCircleXmark"
+              @click="excluirDespesa(props.row)"
             />
           </div>
         </q-td>
@@ -97,7 +104,7 @@ const colunas = [
 export default defineComponent({
   name: 'TabelaComponent',
 
-  emits: ['openModalObservacao'],
+  emits: ['open-modal-observacao', 'editar-despesa', 'excluir-despesa'],
 
   props: {
     rows: {
@@ -119,7 +126,7 @@ export default defineComponent({
 
   methods: {
     openModalGenerico(observacao: string): void {
-      this.$emit('openModalObservacao', observacao);
+      this.$emit('open-modal-observacao', observacao);
     },
 
     formatarData(data: string): string {
@@ -132,6 +139,14 @@ export default defineComponent({
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(preco);
+    },
+
+    excluirDespesa(despesa: IDespesa): void {
+      this.$emit('excluir-despesa', despesa);
+    },
+
+    editarDespesa(despesa: IDespesa): void {
+      this.$emit('editar-despesa', despesa);
     },
   },
 });
