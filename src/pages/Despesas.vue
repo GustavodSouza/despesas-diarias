@@ -267,7 +267,6 @@ export default defineComponent({
   watch: {
     'form.data': {
       handler(value) {
-        debugger;
         if (!value) {
           this.mesVigente = this.obterMesVigente();
         } else {
