@@ -105,7 +105,6 @@ export default defineComponent({
 
     setParams(params: IDespesa): void {
       if (params) {
-        debugger;
         this.$refs.formularioComponente.form.descricao = params.descricao;
         this.$refs.formularioComponente.form.data = params.data;
         this.$refs.formularioComponente.form.preco = params.preco;

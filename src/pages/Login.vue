@@ -298,7 +298,6 @@ export default defineComponent({
 
       await realizarLoginService(usuarioInfo)
         .then(async (response) => {
-          debugger;
           console.log(response);
           const usuario = await buscarUsuarioPorUidService(response.user.uid);
 
