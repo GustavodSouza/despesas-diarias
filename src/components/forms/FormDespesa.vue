@@ -1,7 +1,7 @@
 <template>
   <q-form ref="formulario" class="row">
     <q-item class="column col-md-4 col-sm-12 col-xs-12">
-      <label class="text-bold" for="descricao">Descrição</label>
+      <label class="text-bold custom-color-tertiary" for="descricao">Descrição</label>
       <q-input
         id="descricao"
         class="full-width"
@@ -15,7 +15,7 @@
       />
     </q-item>
     <q-item class="column col-md-4 col-sm-12 col-xs-12">
-      <label class="text-bold" for="data">Data da Despesa</label>
+      <label class="text-bold custom-color-tertiary" for="data">Data da Despesa</label>
       <q-input
         v-if="isDataMesAno"
         id="data"
@@ -38,7 +38,7 @@
       />
     </q-item>
     <q-item class="column col-md-4 col-sm-12 col-xs-12">
-      <label class="text-bold" for="preco">Preço da Despesa</label>
+      <label class="text-bold custom-color-tertiary" for="preco">Preço da Despesa</label>
       <q-input
         id="preco"
         class="full-width"
@@ -51,7 +51,7 @@
       />
     </q-item>
     <q-item v-if="isExpandirFormulario" class="column col-12">
-      <label class="text-bold" for="preco">Observação</label>
+      <label class="text-bold custom-color-tertiary" for="preco">Observação</label>
       <q-input
         id="observacao"
         class="full-width"

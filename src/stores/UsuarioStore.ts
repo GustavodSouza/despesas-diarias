@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 export const usuarioStore = defineStore('usuarioStore', {
   state: () => ({
     user: {
@@ -24,13 +26,8 @@ export const usuarioStore = defineStore('usuarioStore', {
       this.user.email = usuario.email;
     },
 
-    limparUsuario() {
-      this.user = {
-        uid: null,
-        nome: '',
-        sobrenome: '',
-        email: '',
-      };
+    reset() {
+      this.$reset();
     },
   },
 

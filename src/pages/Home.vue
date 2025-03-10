@@ -1,10 +1,12 @@
 <template>
   <q-item>
     <q-card class="my-card full-width">
-      <q-card-section v-if="usuarioStoreInstance.user.uid !== ''">
-        <span class="text-h5"
-          >Bem-vindo(a) <strong>{{ getNomeCompletoUsuario }}</strong></span
+      <q-card-section>
+        <span class="text-h5 custom-color-primary"
+          >Bem-vindo(a)
+          <strong v-if="usuarioStoreInstance.user.uid">{{ getNomeCompletoUsuario }}</strong></span
         >
+        <p>Sistema em fase de construção!</p>
       </q-card-section>
       <q-card-section> </q-card-section>
     </q-card>

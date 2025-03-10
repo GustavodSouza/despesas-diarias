@@ -3,7 +3,7 @@
     <q-layout view="hHh Lpr lff" style="height: 100vh">
       <nav-bar :itens-menu="menuList" />
 
-      <q-page-container>
+      <q-page-container class="custom-background-secondary">
         <q-page padding>
           <router-view />
         </q-page>
@@ -21,25 +21,25 @@ const menuList = [
     icon: 'home',
     label: 'Página Inícial',
     separator: true,
-    path: 'home',
+    path: '/home',
   },
   {
     icon: 'money',
     label: 'Registrar Nova Despesa',
     separator: false,
-    path: 'registrar-despesa',
+    path: '/registrar-despesa',
   },
   {
     icon: 'newspaper',
     label: 'Relatórios',
     separator: false,
-    path: 'relatorios',
+    path: '/relatorios',
   },
   {
     icon: 'people',
     label: 'Perfil',
     separator: true,
-    path: 'perfil',
+    path: '/perfil',
   },
   {
     icon: 'settings',
@@ -51,14 +51,14 @@ const menuList = [
     icon: 'feedback',
     label: 'Feedback',
     separator: false,
-    path: 'feedback',
+    path: '/feedback',
   },
   {
     icon: 'help',
     iconColor: 'primary',
     label: 'Ajuda',
     separator: true,
-    path: 'ajuda',
+    path: '/ajuda',
   },
   {
     icon: 'logout',
