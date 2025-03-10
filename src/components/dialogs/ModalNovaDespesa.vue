@@ -24,13 +24,10 @@
       <q-card-section>
         <form-despesa
           ref="formularioComponente"
-          @emit-descricao="form.descricao = $event"
-          @emit-preco="form.preco = $event"
-          @emit-data="form.data = $event"
-          @emit-observacao="form.observacao = $event"
+          @emit-form="form = $event"
           :is-required="true"
-          :is-data-mes-ano="false"
           :is-expandir-formulario="isExpandirFormulario"
+          :form-props="form"
         >
           <template #botoes>
             <q-item class="row q-gutter-md col-12">
@@ -52,14 +49,14 @@ import { usuarioStore } from 'src/stores/UsuarioStore';
 import { notify } from 'src/utils/notifyUtils';
 import { hideLoader, showLoader } from 'src/plugins/loaderPlugin';
 
-// import type { IDespesa } from 'src/interfaces/DespesaInterface';
-
 import { postDespesa, updateDespesa } from 'src/services/DespesaService';
 
 import { fasPlus, fasMinus } from '@quasar/extras/fontawesome-v6';
 import { MesesConstant } from 'src/constants/MesesConst';
 import { formatarMonetarioBRparaArmazenamento } from 'src/helpers/monetario-helpers';
+
 import type { IDespesa } from 'src/interfaces/DespesaInterface';
+
 import { nextTick } from 'process';
 
 export default defineComponent({
@@ -105,17 +102,13 @@ export default defineComponent({
 
     setParams(params: IDespesa): void {
       if (params) {
-        this.$refs.formularioComponente.form.descricao = params.descricao;
-        this.$refs.formularioComponente.form.data = params.data;
-        this.$refs.formularioComponente.form.preco = params.preco;
-
         this.form.descricao = params.descricao;
         this.form.data = params.data;
-        this.form.preco = params.preco;
+        this.form.preco = Number(params.preco).toFixed(2);
         this.form.id = params.id;
 
         if (params.observacao !== '') {
-          this.$refs.formularioComponente.form.observacao = params.observacao;
+          this.form.observacao = params.observacao;
           this.isExpandirFormulario = true;
         }
 
@@ -138,13 +131,13 @@ export default defineComponent({
 
             const date = new Date(this.form.data);
 
-            const payloadDespesa = {
+            const payloadDespesa: IDespesa = {
               descricao: this.form.descricao,
               data: this.form.data,
               preco: formatarMonetarioBRparaArmazenamento(this.form.preco),
               observacao: this.form.observacao,
               dt_reg: new Date().toLocaleString(),
-              mes_ref: MesesConstant()[date.getUTCMonth()],
+              mes_ref: MesesConstant()[date.getUTCMonth()] ?? '',
               ano_ref: date.getFullYear(),
               id: this.form.id ?? '',
             };
@@ -155,6 +148,7 @@ export default defineComponent({
             }
 
             this.postDespesa(payloadDespesa);
+            this.limparCampos();
           } else {
             notify('warning', 'Preencha todos os campos.');
           }
@@ -198,7 +192,9 @@ export default defineComponent({
       this.form.data = '';
       this.form.preco = '';
       this.form.observacao = '';
+      this.form.id = '';
       this.isExpandirFormulario = false;
+      this.isEditar = false;
     },
   },
 });
