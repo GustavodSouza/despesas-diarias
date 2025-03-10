@@ -138,9 +138,6 @@
           <strong>{{ form.email }}</strong></span
         >
       </div>
-      <div>
-        <p>Não recebeu o link?</p>
-      </div>
     </template>
   </modal-generico>
 </template>
@@ -348,7 +345,6 @@ export default defineComponent({
 
           await postUsuario(novoUsuario)
             .then(() => {
-              notify('positive', `Bem vindo(a) ${novoUsuario.nome}`);
               this.usuarioStoreInstance.setUsuario(novoUsuario);
               this.$router.push('/home');
             })
