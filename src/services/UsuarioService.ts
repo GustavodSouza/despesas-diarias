@@ -7,12 +7,15 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   fetchSignInMethodsForEmail,
+  getAuth,
+  EmailAuthProvider,
+  linkWithCredential,
 } from 'firebase/auth';
 
 import { db, auth } from 'src/boot/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
 
-export const criarContaUsuarioService = async (usuarioModel: IUsuario) => {
+export const postUsuarioAuthentication = async (usuarioModel: IUsuario) => {
   return await createUserWithEmailAndPassword(auth, usuarioModel.email, usuarioModel.senha);
 };
 
@@ -46,4 +49,30 @@ export const atribuirInformacoesPerfilUsuarioService = async (usuarioModel: IUsu
 export const realizarLoginGoogleService = async () => {
   const provider = new GoogleAuthProvider();
   return await signInWithPopup(auth, provider);
+};
+
+export const postUsuario = async (usuario: Partial<IUsuario>) => {
+  if (!usuario.uid) {
+    throw new Error('UID do usuário é obrigatório.');
+  }
+
+  await setDoc(doc(db, 'users', usuario.uid), usuario);
+};
+
+export const linkarUsuario = async (usuario: Partial<IUsuario>) => {
+  const auth = getAuth();
+  const user = auth.currentUser; // Usuário autenticado com o Google
+
+  if (user) {
+    const emailCredential = EmailAuthProvider.credential(usuario.email ?? '', usuario.senha ?? ''); // Cria as credenciais de email e senha
+    try {
+      // Vincula a conta do Google com a conta de email e senha
+      await linkWithCredential(user, emailCredential);
+      console.log('Contas vinculadas com sucesso!');
+    } catch (error) {
+      console.error('Erro ao vincular as contas:', error.message);
+    }
+  } else {
+    console.log('Nenhum usuário autenticado com o Google.');
+  }
 };

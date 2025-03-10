@@ -153,11 +153,12 @@ import { auth } from 'src/boot/firebase';
 
 import {
   atribuirInformacoesPerfilUsuarioService,
-  criarContaUsuarioService,
+  postUsuarioAuthentication,
   buscarUsuarioPorUidService,
   realizarLoginGoogleService,
   verificarSeUsuarioExisteNaBaseComEmailService,
   realizarLoginService,
+  postUsuario,
   // realizarLoginService,
 } from 'src/services/UsuarioService';
 
@@ -205,7 +206,7 @@ export default defineComponent({
           };
 
           // 1º Registra o usuário no authentication
-          await criarContaUsuarioService({
+          await postUsuarioAuthentication({
             ...informacoesBasicas,
           })
             .then((response) => {
@@ -217,7 +218,7 @@ export default defineComponent({
                 ...informacoesBasicas,
               });
 
-              this.atribuirInformacoesUsuario(this.usuarioStoreInstance.user);
+              // this.atribuirInformacoesUsuario(this.usuarioStoreInstance.user);
             })
             .catch((error) => {
               if (
@@ -331,20 +332,32 @@ export default defineComponent({
 
       await realizarLoginGoogleService()
         .then(async (response) => {
-          await buscarUsuarioPorUidService(response.user.uid).then((usuario) => {
-            usuario.forEach((usuarioItem) => {
-              const usuarioData = usuarioItem.data();
+          const usuario = response.user;
 
-              this.usuarioStoreInstance.setUsuario({
-                uid: usuarioData.uid,
-                nome: usuarioData.nome,
-                sobrenome: usuarioData.sobrenome,
-                email: usuarioData.email,
-              });
-            });
+          const novoUsuario: Partial<IUsuario> = { uid: '', nome: '', sobrenome: '', email: '' };
 
-            this.$router.push('/home');
-          });
+          if (usuario.displayName) {
+            const [nome, ...resto] = usuario.displayName.split(' ');
+
+            const sobrenome = resto.join(' ');
+
+            novoUsuario.uid = response.user.uid;
+            novoUsuario.nome = nome ?? '';
+            novoUsuario.sobrenome = sobrenome;
+            novoUsuario.email = response.user.email ?? '';
+          }
+
+          await postUsuario(novoUsuario)
+            .then(() => {
+              notify('positive', `Bem vindo(a) ${novoUsuario.nome}`);
+              this.usuarioStoreInstance.setUsuario(novoUsuario);
+              this.$router.push('/home');
+            })
+            .catch(() => {
+              notify('negative', `Erro ao registrar o usuário na base de dados!`);
+              return;
+            })
+            .finally(hideLoader);
         })
         .catch(() => console.error('Erro na autenticação com Google'))
         .finally(hideLoader);
