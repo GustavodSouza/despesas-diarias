@@ -144,7 +144,7 @@ export default defineComponent({
               preco: formatarMonetarioBRparaArmazenamento(this.form.preco),
               observacao: this.form.observacao,
               dt_reg: new Date().toLocaleString(),
-              mes_ref: MesesConstant()[date.getMonth()],
+              mes_ref: MesesConstant()[date.getUTCMonth()],
               ano_ref: date.getFullYear(),
               id: this.form.id ?? '',
             };
