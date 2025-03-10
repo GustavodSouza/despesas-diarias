@@ -10,7 +10,7 @@
         outlined
         counter
         placeholder="Insira a descrição da despesa"
-        @update:model-value="emitDescricao"
+        @update:model-value="emitirForm"
         :rules="isRequired ? [validarCampo] : []"
       />
     </q-item>
@@ -23,7 +23,7 @@
         v-model="form.data"
         :type="'month' as any"
         outlined
-        @update:model-value="emitData"
+        @update:model-value="emitirForm"
         :rules="isRequired ? [validarCampo] : []"
       />
       <q-input
@@ -33,7 +33,7 @@
         v-model="form.data"
         type="date"
         outlined
-        @update:model-value="emitData"
+        @update:model-value="emitirForm"
         :rules="isRequired ? [validarCampo] : []"
       />
     </q-item>
@@ -46,7 +46,7 @@
         placeholder="Insira o preço pago pela despesa"
         outlined
         v-money="money"
-        @update:model-value="emitPreco"
+        @update:model-value="emitirForm"
         :rules="isRequired ? [validarCampoValor] : []"
       />
     </q-item>
@@ -60,7 +60,7 @@
         placeholder="Insira uma observação sobre a despesa."
         outlined
         counter
-        @update:model-value="emitObservacao"
+        @update:model-value="emitirForm"
       />
     </q-item>
 
@@ -76,7 +76,7 @@ import { VMoney } from 'v-money';
 export default defineComponent({
   name: 'FormDespesaComponent',
 
-  emits: ['emitDescricao', 'emitData', 'emitPreco', 'emitObservacao'],
+  emits: ['emit-form'],
 
   directives: { money: VMoney },
 
@@ -88,12 +88,17 @@ export default defineComponent({
 
     isDataMesAno: {
       type: Boolean,
-      required: true,
+      required: false,
+      default: false,
     },
 
     isExpandirFormulario: {
       type: Boolean,
       required: false,
+    },
+
+    formProps: {
+      type: Object,
     },
   },
 
@@ -116,21 +121,18 @@ export default defineComponent({
     };
   },
 
+  watch: {
+    formProps: {
+      handler(value) {
+        this.form = value;
+      },
+      deep: true,
+    },
+  },
+
   methods: {
-    emitDescricao(descricao: string): void {
-      this.$emit('emitDescricao', descricao);
-    },
-
-    emitData(data: string): void {
-      this.$emit('emitData', data);
-    },
-
-    emitPreco(preco: string): void {
-      this.$emit('emitPreco', preco);
-    },
-
-    emitObservacao(observacao: string): void {
-      this.$emit('emitObservacao', observacao);
+    emitirForm(): void {
+      this.$emit('emit-form', this.form);
     },
 
     validarCampo(valorDigitado): boolean {
@@ -149,6 +151,7 @@ export default defineComponent({
       this.form.descricao = '';
       this.form.data = '';
       this.form.preco = '';
+      this.form.observacao = '';
     },
   },
 });
