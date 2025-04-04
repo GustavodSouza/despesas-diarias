@@ -57,9 +57,7 @@
             </div>
             <form-despesa
               ref="formularioComponente"
-              @emit-descricao="form.descricao = $event"
-              @emit-data="form.data = $event"
-              @emit-preco="form.preco = $event"
+              @emit-form="form = $event"
               :is-required="false"
               :is-data-mes-ano="true"
             >
@@ -335,6 +333,8 @@ export default defineComponent({
       showLoader();
 
       this.isFiltrar = true;
+
+      debugger;
 
       await filtrarDespesa(this.form, this.usuarioStoreInstance.user.uid)
         .then((querySnapshot) => {
