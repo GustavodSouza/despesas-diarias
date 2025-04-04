@@ -334,8 +334,6 @@ export default defineComponent({
 
       this.isFiltrar = true;
 
-      debugger;
-
       await filtrarDespesa(this.form, this.usuarioStoreInstance.user.uid)
         .then((querySnapshot) => {
           if (!querySnapshot.empty) {
