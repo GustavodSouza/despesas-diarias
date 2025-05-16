@@ -18,14 +18,6 @@ import { defineComponent, shallowRef } from 'vue';
 export default defineComponent({
   name: 'ModalGenericoComponent',
 
-  props: {
-    tamanhoModal: {
-      type: String,
-      required: false,
-      default: '.md',
-    },
-  },
-
   components: {},
 
   data() {
