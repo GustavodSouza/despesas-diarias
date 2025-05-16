@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="isOpen">
-    <q-card style="max-width: 930px; width: 930px">
+    <q-card style="max-width: 930px">
       <q-card-section class="column q-pb-none">
         <q-item class="row">
           <slot name="titulo" />

@@ -1,9 +1,10 @@
 export const formatarMonetarioBRparaArmazenamento = (valor) => {
-  let valorLimpo = valor.replace('R$', '').trim();
+  if (!valor || typeof valor !== 'string') return 0;
 
-  valorLimpo = valorLimpo.replace(',', '.');
+  const valorLimpo = valor.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
 
-  return parseFloat(valorLimpo);
+  const numero = parseFloat(valorLimpo);
+  return isNaN(numero) ? 0 : numero;
 };
 
 export const calcularTotalDespesas = (listaTotais: Array<number>) => {
