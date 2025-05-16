@@ -131,6 +131,8 @@ export default defineComponent({
 
             const date = new Date(this.form.data);
 
+            debugger;
+
             const payloadDespesa: IDespesa = {
               descricao: this.form.descricao,
               data: this.form.data,

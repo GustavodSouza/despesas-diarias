@@ -110,7 +110,7 @@ export default defineComponent({
         prefix: 'R$ ',
         suffix: '',
         precision: 2,
-        masked: false,
+        masked: true,
       },
       form: {
         descricao: shallowRef<string>(''),
