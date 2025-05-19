@@ -137,8 +137,6 @@ export default defineComponent({
     },
 
     async adicionarDespesa(): Promise<void> {
-      showLoader();
-
       const refs = this.$refs.formularioComponente;
 
       const validacoes = await Promise.all(
@@ -148,6 +146,8 @@ export default defineComponent({
       const todosValidos = validacoes.every((valido) => valido);
 
       if (todosValidos) {
+        showLoader();
+
         let hasError = false;
         this.forms.forEach((itemForm) => {
           const date = new Date(itemForm.data);
