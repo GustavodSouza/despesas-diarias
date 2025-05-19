@@ -10,7 +10,6 @@
         outlined
         counter
         placeholder="Insira a descrição da despesa"
-        @update:model-value="emitirForm"
         :rules="isRequired ? [validarCampo] : []"
       />
     </q-item>
@@ -23,7 +22,6 @@
         v-model="form.data"
         :type="'month' as any"
         outlined
-        @update:model-value="emitirForm"
         :rules="isRequired ? [validarCampo] : []"
       />
       <q-input
@@ -33,7 +31,6 @@
         v-model="form.data"
         type="date"
         outlined
-        @update:model-value="emitirForm"
         :rules="isRequired ? [validarCampo] : []"
       />
     </q-item>
@@ -46,12 +43,11 @@
         placeholder="Insira o preço pago pela despesa"
         outlined
         v-money="money"
-        @update:model-value="emitirForm"
         :rules="isRequired ? [validarCampoValor] : []"
       />
     </q-item>
-    <q-item v-if="isExpandirFormulario" class="column col-12">
-      <label class="text-bold custom-color-tertiary" for="preco">Observação</label>
+    <q-item class="column col-12">
+      <label class="text-bold custom-color-tertiary" for="preco">Observação (Opcional)</label>
       <q-input
         id="observacao"
         class="full-width"
@@ -60,7 +56,6 @@
         placeholder="Insira uma observação sobre a despesa."
         outlined
         counter
-        @update:model-value="emitirForm"
       />
     </q-item>
 
@@ -70,13 +65,20 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, shallowRef } from 'vue';
+import { defineComponent } from 'vue';
 import { VMoney } from 'v-money';
+
+type FormDespesa = {
+  descricao: string;
+  data: string;
+  preco: string;
+  observacao?: string;
+};
 
 export default defineComponent({
   name: 'FormDespesaComponent',
 
-  emits: ['emit-form'],
+  emits: ['update:form'],
 
   directives: { money: VMoney },
 
@@ -97,8 +99,15 @@ export default defineComponent({
       required: false,
     },
 
-    formProps: {
-      type: Object,
+    modelValue: {
+      type: Object as () => FormDespesa,
+      required: true,
+    },
+
+    isFormFilter: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
 
@@ -112,46 +121,28 @@ export default defineComponent({
         precision: 2,
         masked: true,
       },
-      form: {
-        descricao: shallowRef<string>(''),
-        data: shallowRef<string>(''),
-        preco: shallowRef<string>(''),
-        observacao: shallowRef<string>(''),
-      },
     };
   },
 
-  watch: {
-    formProps: {
-      handler(value) {
-        this.form = value;
+  computed: {
+    form: {
+      get(): typeof this.modelValue {
+        return this.modelValue;
       },
-      deep: true,
+
+      set(val) {
+        this.$emit('update:modelValue', val);
+      },
     },
   },
 
   methods: {
-    emitirForm(): void {
-      this.$emit('emit-form', this.form);
-    },
-
-    validarCampo(valorDigitado): boolean {
+    validarCampo(valorDigitado: string): boolean {
       return !!valorDigitado;
     },
 
-    validarCampoValor(valorDigitado): boolean {
-      if (valorDigitado === 'R$ 0,00') {
-        return false;
-      }
-
-      return true;
-    },
-
-    limparCampos(): void {
-      this.form.descricao = '';
-      this.form.data = '';
-      this.form.preco = '';
-      this.form.observacao = '';
+    validarCampoValor(valorDigitado: string): boolean {
+      return valorDigitado !== 'R$ 0,00';
     },
   },
 });
