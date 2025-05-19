@@ -5,15 +5,17 @@
         <q-card class="full-width" flat>
           <q-item class="row justify-between">
             <div class="row items-center q-gutter-md">
-              <span class="text-h6 custom-color-primary">Registrar Nova Despesa</span>
+              <span class="text-h6 custom-color-primary"
+                >{{ isEditar ? 'Editar' : 'Registrar Nova' }} Despesa</span
+              >
               <q-icon
+                v-if="!isEditar"
                 class="cursor-pointer"
-                :name="isExpandirFormulario ? icons.fasMinus : icons.fasPlus"
-                @click="isExpandirFormulario = !isExpandirFormulario"
+                :name="icons.fasPlus"
+                @click="adicionarCampos"
               >
                 <q-tooltip>
-                  <span v-if="isExpandirFormulario">Recolher formulário.</span>
-                  <span v-else>Expandir formulário.</span>
+                  <span>Adicionar campos.</span>
                 </q-tooltip>
               </q-icon>
             </div>
@@ -22,27 +24,33 @@
       </q-card-section>
 
       <q-card-section>
-        <form-despesa
-          ref="formularioComponente"
-          @emit-form="form = $event"
-          :is-required="true"
-          :is-expandir-formulario="isExpandirFormulario"
-          :form-props="form"
-        >
-          <template #botoes>
-            <q-item class="row q-gutter-md col-12">
-              <q-btn no-caps color="primary" label="Confirmar" @click="adicionarDespesa" />
-              <q-btn no-caps color="warning" label="Limpar" @click="limparCampos" />
-            </q-item>
-          </template>
-        </form-despesa>
+        <template v-for="(_, index) in forms" :key="index">
+          <q-card class="q-mb-md">
+            <q-btn
+              v-if="index !== 0"
+              class="q-ma-md float-right"
+              color="red"
+              size="sm"
+              round
+              label="X"
+              @click="remover(index)"
+            >
+              <q-tooltip>Remover</q-tooltip>
+            </q-btn>
+            <form-despesa ref="formularioComponente" v-model="forms[index]!" is-required />
+          </q-card>
+        </template>
+        <q-item class="row q-gutter-md col-12">
+          <q-btn no-caps color="primary" label="Confirmar" @click="adicionarDespesa" />
+          <q-btn no-caps color="warning" label="Limpar" @click="limparCampos" />
+        </q-item>
       </q-card-section>
     </q-card>
   </q-dialog>
 </template>
 
 <script lang="ts">
-import { defineComponent, shallowRef } from 'vue';
+import { defineComponent, shallowRef, ref } from 'vue';
 import FormDespesa from '../forms/FormDespesa.vue';
 
 import { usuarioStore } from 'src/stores/UsuarioStore';
@@ -59,6 +67,13 @@ import type { IDespesa } from 'src/interfaces/DespesaInterface';
 
 import { nextTick } from 'process';
 
+type FormDespesaType = {
+  descricao: string;
+  data: string;
+  preco: string;
+  observacao: string;
+};
+
 export default defineComponent({
   name: 'ModalNovaDespesaComponent',
 
@@ -74,13 +89,6 @@ export default defineComponent({
     return {
       isOpen: shallowRef<boolean>(false),
       usuarioStoreInstance,
-      form: {
-        descricao: shallowRef<string>(''),
-        data: shallowRef<string>(''),
-        preco: shallowRef<string>(''),
-        observacao: shallowRef<string>(''),
-        id: shallowRef<string>(''),
-      },
       icons: {
         fasPlus,
         fasMinus,
@@ -88,6 +96,14 @@ export default defineComponent({
       isLimparCampos: shallowRef<boolean>(false),
       isExpandirFormulario: shallowRef<boolean>(false),
       isEditar: shallowRef<boolean>(false),
+      form: {
+        descricao: '',
+        data: '',
+        preco: '',
+        observacao: '',
+        id: '',
+      },
+      forms: ref<FormDespesaType[]>([{ descricao: '', data: '', observacao: '', preco: '' }]),
     };
   },
 
@@ -102,15 +118,13 @@ export default defineComponent({
 
     setParams(params: IDespesa): void {
       if (params) {
-        this.form.descricao = params.descricao;
-        this.form.data = params.data;
-        this.form.preco = Number(params.preco).toFixed(2);
-        this.form.id = params.id;
-
-        if (params.observacao !== '') {
-          this.form.observacao = params.observacao;
-          this.isExpandirFormulario = true;
-        }
+        this.forms[0] = {
+          descricao: params.descricao,
+          data: params.data,
+          preco: Number(params.preco).toFixed(2),
+          observacao: params.observacao,
+          id: params.id,
+        };
 
         if (params.id) {
           this.isEditar = true;
@@ -123,52 +137,64 @@ export default defineComponent({
     },
 
     async adicionarDespesa(): Promise<void> {
-      this.$refs.formularioComponente.$refs.formulario
-        .validate()
-        .then(async (isFormularioValido: boolean) => {
-          if (isFormularioValido) {
-            showLoader();
+      showLoader();
 
-            const date = new Date(this.form.data);
+      const refs = this.$refs.formularioComponente;
 
-            const payloadDespesa: IDespesa = {
-              descricao: this.form.descricao,
-              data: this.form.data,
-              preco: formatarMonetarioBRparaArmazenamento(this.form.preco),
-              observacao: this.form.observacao,
-              dt_reg: new Date().toLocaleString(),
-              mes_ref: MesesConstant()[date.getUTCMonth()] ?? '',
-              ano_ref: date.getFullYear(),
-              id: this.form.id ?? '',
-            };
+      const validacoes = await Promise.all(
+        refs.map((formPai) => formPai.$refs.formulario.validate()),
+      );
 
-            if (this.isEditar) {
-              this.updateDespesa(payloadDespesa);
-              return;
-            }
+      const todosValidos = validacoes.every((valido) => valido);
 
-            this.postDespesa(payloadDespesa);
-            this.limparCampos();
-          } else {
-            notify('warning', 'Preencha todos os campos.');
+      if (todosValidos) {
+        let hasError = false;
+        this.forms.forEach((itemForm) => {
+          const date = new Date(itemForm.data);
+
+          const payloadDespesa: IDespesa = {
+            descricao: itemForm.descricao,
+            data: itemForm.data,
+            preco: formatarMonetarioBRparaArmazenamento(itemForm.preco),
+            observacao: itemForm.observacao,
+            dt_reg: new Date().toLocaleString(),
+            mes_ref: MesesConstant()[date.getUTCMonth()] ?? '',
+            ano_ref: date.getFullYear(),
+            id: itemForm.id ?? '',
+          };
+
+          if (this.isEditar) {
+            this.updateDespesa(payloadDespesa);
+            return;
           }
-        });
-    },
 
-    postDespesa(despesa: IDespesa): void {
-      postDespesa(despesa, this.usuarioStoreInstance.user.uid)
-        .then(() => {
+          hasError = this.postDespesa(payloadDespesa);
+        });
+
+        if (!hasError) {
           notify('positive', 'Despesa criada com sucesso.');
           this.limparCampos();
           this.toogleModal(false);
           this.$emit('carregarTabela');
-        })
-        .catch(() => {
-          notify('negative', 'Erro ao registrar a despesa. Tente novamente mais tarde!');
-        })
-        .finally(() => {
-          hideLoader();
-        });
+        }
+
+        hideLoader();
+      } else {
+        notify('warning', 'Por Favor, preencha todos os campos para continuar.');
+      }
+    },
+
+    postDespesa(despesa: IDespesa): boolean {
+      let hasError = false;
+      postDespesa(despesa, this.usuarioStoreInstance.user.uid).catch(() => {
+        hasError = true;
+        notify(
+          'negative',
+          `Erro ao registrar a despesa: ${despesa.descricao}. Tente novamente mais tarde!`,
+        );
+      });
+
+      return hasError;
     },
 
     updateDespesa(despesa: IDespesa): void {
@@ -188,13 +214,17 @@ export default defineComponent({
     },
 
     limparCampos(): void {
-      this.form.descricao = '';
-      this.form.data = '';
-      this.form.preco = '';
-      this.form.observacao = '';
-      this.form.id = '';
-      this.isExpandirFormulario = false;
+      this.forms = [{ ...this.form }];
       this.isEditar = false;
+    },
+
+    adicionarCampos(): void {
+      const novoForm = { ...this.form };
+      this.forms.push(novoForm);
+    },
+
+    remover(index: number): void {
+      this.forms = this.forms.filter((_, indexItem) => indexItem !== index);
     },
   },
 });

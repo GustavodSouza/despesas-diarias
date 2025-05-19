@@ -57,7 +57,7 @@
             </div>
             <form-despesa
               ref="formularioComponente"
-              @emit-form="form = $event"
+              v-model="form"
               :is-required="false"
               :is-data-mes-ano="true"
             >
@@ -127,9 +127,7 @@
       </div>
       <form-despesa
         ref="formularioComponente"
-        @emit-descricao="form.descricao = $event"
-        @emit-data="form.data = $event"
-        @emit-preco="form.preco = $event"
+        v-model="form"
         :is-required="false"
         :is-data-mes-ano="true"
       >
@@ -405,7 +403,6 @@ export default defineComponent({
     },
 
     editarDespesa(despesa: IDespesa): void {
-      console.log(despesa);
       this.$refs.modalNovaDespesa.openModal(despesa);
     },
   },
