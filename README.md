@@ -1,40 +1,23 @@
-# Despesas Diarias App (despesas-diarias)
+## Despesas Diárias
 
-Projeto criado para registros de despesas e relatórios mensais.
+### 🚀 Como rodar este projeto com Docker
 
-## Install the dependencies
+Este projeto está disponível no Docker Hub.
+
+### 📦 Pull da imagem
+
 ```bash
-yarn
-# or
-npm install
+docker pull gustavosouza36/despesas-diarias
 ```
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
+### ▶️ Rodar o container
+
 ```bash
-quasar dev
+docker run -d -p 8080:80 gustavosouza36/despesas-diarias
 ```
 
+Acesse no navegador: http://localhost:8080
 
-### Lint the files
-```bash
-yarn lint
-# or
-npm run lint
-```
+### 🐳 Requisitos
 
-
-### Format the files
-```bash
-yarn format
-# or
-npm run format
-```
-
-
-### Build the app for production
-```bash
-quasar build
-```
-
-### Customize the configuration
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+[Docker instalado](https://www.docker.com/products/docker-desktop)
