@@ -46,7 +46,7 @@
         :rules="isRequired ? [validarCampoValor] : []"
       />
     </q-item>
-    <q-item class="column col-12">
+    <q-item class="column col-12" v-if="!isFormFilter">
       <label class="text-bold custom-color-tertiary" for="preco">Observação (Opcional)</label>
       <q-input
         id="observacao"
