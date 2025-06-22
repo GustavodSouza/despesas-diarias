@@ -49,10 +49,9 @@
         <template v-for="(menuItem, index) in itensMenu" :key="index">
           <q-item
             clickable
-            :active="menuItem.label === 'Outbox'"
             v-ripple
             :class="{ 'menu-selecionado': isItemMenuSelecionado(menuItem.path) }"
-            @click="navegar(menuItem.path)"
+            @click="menuItem.path ? navegar(menuItem.path) : executar(menuItem.label)"
           >
             <q-item-section avatar>
               <q-icon class="custom-color-primary" :name="menuItem.icon" />
@@ -64,6 +63,11 @@
           <q-separator :key="'sep' + index" v-if="menuItem.separator" />
         </template>
       </q-list>
+
+      <div class="fixed-bottom">
+        <q-separator />
+        <div class="text-caption">Version: {{ version }}</div>
+      </div>
     </q-scroll-area>
   </q-drawer>
 </template>
@@ -72,6 +76,7 @@ import { defineComponent, shallowRef } from 'vue';
 import { usuarioStore } from 'src/stores/UsuarioStore';
 import { realizarLogoutService } from 'src/services/UsuarioService';
 import { hideLoader, showLoader } from 'src/plugins/loaderPlugin';
+import { version } from '../../../package.json';
 
 interface IItensMenu {
   label: string;
@@ -97,6 +102,7 @@ export default defineComponent({
       drawer: shallowRef<boolean>(false),
       usuarioStoreInstance,
       mobileData: shallowRef<boolean>(false),
+      version,
     };
   },
 
@@ -128,6 +134,12 @@ export default defineComponent({
 
     isItemMenuSelecionado(path: string): boolean {
       return this.$router.currentRoute.value.fullPath === path;
+    },
+
+    executar(label: string): void {
+      if (label === 'Sair') {
+        this.sair();
+      }
     },
   },
 });

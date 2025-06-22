@@ -59,7 +59,8 @@
               ref="formularioComponente"
               v-model="form"
               :is-required="false"
-              :is-data-mes-ano="true"
+              is-data-mes-ano
+              is-form-filter
             >
               <template #botoes>
                 <q-item class="row q-gutter-md col-12">
