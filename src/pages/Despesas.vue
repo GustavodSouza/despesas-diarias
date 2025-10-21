@@ -1,5 +1,5 @@
 <template>
-  <q-item v-if="!$q.platform.is.mobile">
+  <q-item>
     <q-card class="full-width">
       <q-card-section>
         <span class="text-bold text-h6 custom-color-primary">Registrar Nova Despesa</span>
@@ -8,7 +8,7 @@
       <q-card-section>
         <q-card class="row no-box-shadow">
           <q-item class="col-md-6 col-12">
-            <q-card class="full-width q-pa-md q-pr-md">
+            <q-card class="full-width q-pa-md">
               <div class="row items-center q-pb-md">
                 <span class="text-h6 custom-color-secondary">Mês Filtrado</span>
                 <q-icon
@@ -50,7 +50,7 @@
       </q-card-section>
 
       <q-card-section>
-        <q-item class="row">
+        <q-item class="row q-pa-none">
           <q-card class="full-width">
             <div class="row q-gutter-sm items-center q-pa-md">
               <span class="text-bold custom-color-secondary">Filtros</span>
@@ -74,7 +74,7 @@
       </q-card-section>
 
       <q-card-section>
-        <q-item class="column">
+        <q-item class="column q-pa-none">
           <div class="row q-pb-md">
             <q-btn color="positive" no-caps label="Nova Despesa" @click="openModalNovaDespesa" />
           </div>
@@ -82,71 +82,11 @@
           <tabela-component
             :rows="rows"
             @open-modal-observacao="openModalGenerico($event)"
-            @excluir-despesa="confirmarExclusao"
             @editar-despesa="editarDespesa"
+            @excluir-despesa="confirmarExclusao"
           />
         </q-item>
       </q-card-section>
-    </q-card>
-  </q-item>
-
-  <q-item v-else class="column q-pa-none">
-    <span class="full-width text-bold text-center text-h6">Registrar Nova Despesa</span>
-
-    <q-card class="full-width q-py-md q-mt-md">
-      <div class="row justify-center items-center">
-        <span class="text-h6">Mês Filtrado</span>
-        <q-icon class="q-pl-md" size="xs" :name="icons.fasCalendarCheck" />
-      </div>
-      <div class="row justify-center">
-        <span class="text-center text-h6">{{ mesVigente }}</span>
-      </div>
-    </q-card>
-
-    <q-card class="full-width q-py-md q-mt-md">
-      <div class="row justify-center items-center q-pb-md">
-        <span class="text-h6">Total</span>
-        <q-icon class="q-pl-md" size="xs" :name="icons.fasSackDollar" />
-      </div>
-      <div class="row justify-center items-center q-gutter-x-sm">
-        <span class="text-h6">R$ {{ formatarPreco(valorTotal) }}</span>
-        <q-icon
-          class="cursor-pointer"
-          size="sm"
-          color="secondary"
-          :name="icons.fasCopy"
-          @click="copiar(valorTotal)"
-        >
-          <q-tooltip> Copiar </q-tooltip>
-        </q-icon>
-      </div>
-    </q-card>
-
-    <q-card class="full-width q-mt-md">
-      <div class="row q-gutter-sm items-center q-pa-md">
-        <span class="text-bold">Filtros</span>
-      </div>
-      <form-despesa
-        ref="formularioComponente"
-        v-model="form"
-        :is-required="false"
-        :is-data-mes-ano="true"
-      >
-        <template #botoes>
-          <q-item class="row q-gutter-md col-12">
-            <q-btn no-caps color="primary" label="Filtrar" @click="filtrarDespesa" />
-            <q-btn no-caps color="warning" label="Limpar" @click="limparCampos" />
-          </q-item>
-        </template>
-      </form-despesa>
-    </q-card>
-
-    <q-card class="full-width q-mt-md">
-      <div class="row q-px-md q-py-md">
-        <q-btn color="positive" no-caps label="Nova Despesa" @click="openModalNovaDespesa" />
-      </div>
-
-      <tabela-component :rows="rows" @open-modal-observacao="openModalGenerico($event)" />
     </q-card>
   </q-item>
 

@@ -4,6 +4,8 @@
     :columns="colunas"
     :rows="rows"
     :rows-per-page-options="[10, 20, 50, 100]"
+    flat
+    style="touch-action: manipulation"
   >
     <template #body="props">
       <q-tr :props="props">
@@ -146,6 +148,8 @@ export default defineComponent({
     },
 
     editarDespesa(despesa: IDespesa): void {
+      debugger;
+      console.log('Teste');
       this.$emit('editar-despesa', despesa);
     },
   },
