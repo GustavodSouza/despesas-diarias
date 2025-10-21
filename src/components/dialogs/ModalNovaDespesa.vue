@@ -109,6 +109,7 @@ export default defineComponent({
 
   methods: {
     openModal(params: IDespesa) {
+      console.log('Testeee');
       this.toogleModal(true);
 
       nextTick(() => {
@@ -164,15 +165,14 @@ export default defineComponent({
           };
 
           if (this.isEditar) {
-            this.updateDespesa(payloadDespesa);
-            return;
+            hasError = this.updateDespesa(payloadDespesa);
+          } else {
+            hasError = this.postDespesa(payloadDespesa);
           }
-
-          hasError = this.postDespesa(payloadDespesa);
         });
 
         if (!hasError) {
-          notify('positive', 'Despesa criada com sucesso.');
+          notify('positive', 'Despesa salva com sucesso.');
           this.limparCampos();
           this.toogleModal(false);
           this.$emit('carregarTabela');
@@ -197,20 +197,19 @@ export default defineComponent({
       return hasError;
     },
 
-    updateDespesa(despesa: IDespesa): void {
+    updateDespesa(despesa: IDespesa): boolean {
+      let hasError = false;
       updateDespesa(despesa, this.usuarioStoreInstance.user.uid)
-        .then(() => {
-          notify('positive', 'Despesa atualizada com sucesso.');
-          this.limparCampos();
-          this.toogleModal(false);
-          this.$emit('carregarTabela');
-        })
+        .then()
         .catch(() => {
+          hasError = true;
           notify('negative', 'Erro ao atualizar a despesa. Tente novamente mais tarde!');
         })
         .finally(() => {
           hideLoader();
         });
+
+      return hasError;
     },
 
     limparCampos(): void {
