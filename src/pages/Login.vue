@@ -295,7 +295,6 @@ export default defineComponent({
 
       await realizarLoginService(usuarioInfo)
         .then(async (response) => {
-          console.log(response);
           const usuario = await buscarUsuarioPorUidService(response.user.uid);
 
           usuario.forEach((usuarioItem) => {

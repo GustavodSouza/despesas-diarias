@@ -109,7 +109,6 @@ export default defineComponent({
 
   methods: {
     openModal(params: IDespesa) {
-      console.log('Testeee');
       this.toogleModal(true);
 
       nextTick(() => {
